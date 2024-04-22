@@ -1,31 +1,21 @@
 package com.ldtteam.domumornamentum.client.model.utils;
 
+import com.ldtteam.domumornamentum.fabric.rendering.IQuadTransformer;
+import com.ldtteam.domumornamentum.fabric.rendering.QuadTransformers;
+import com.ldtteam.domumornamentum.mixin.MinecraftAccessor;
 import com.ldtteam.domumornamentum.util.SingleBlockLevelReader;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.DirtPathBlock;
-import net.minecraft.world.level.block.FarmBlock;
-import net.minecraft.world.level.block.FireBlock;
-import net.minecraft.world.level.block.FlowerPotBlock;
-import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.client.model.IQuadTransformer;
-import net.minecraftforge.client.model.QuadTransformers;
-import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Optional;
 
 public class ModelSpriteQuadTransformer implements IQuadTransformer
 {
@@ -95,14 +85,15 @@ public class ModelSpriteQuadTransformer implements IQuadTransformer
         int out;
         final Fluid fluid = state.getFluidState().getType();
         if (fluid != Fluids.EMPTY) {
-            out = IClientFluidTypeExtensions.of(fluid).getTintColor(new FluidStack(fluid, 1));
+            out = FluidRenderHandlerRegistry.INSTANCE.get(fluid).getFluidColor(null, null, fluid.defaultFluidState());
+            //out = IClientFluidTypeExtensions.of(fluid).getTintColor(new FluidStack(fluid, 1));
         } else {
             final ItemStack target = getItemStackFromBlockState(state);
 
             if (target.isEmpty()) {
                 out = 0xffffff;
             } else {
-                out = Minecraft.getInstance().getItemColors().getColor(target, 0);
+                out = ((MinecraftAccessor) Minecraft.getInstance()).getItemColors().getColor(target, 0);
             }
         }
 

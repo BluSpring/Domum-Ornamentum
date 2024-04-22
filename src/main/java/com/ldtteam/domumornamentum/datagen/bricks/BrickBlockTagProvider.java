@@ -1,24 +1,22 @@
 package com.ldtteam.domumornamentum.datagen.bricks;
 
 import com.ldtteam.domumornamentum.block.IModBlocks;
+import com.ldtteam.domumornamentum.fabric.TagProviderHelper;
 import com.ldtteam.domumornamentum.tag.ModTags;
-import com.ldtteam.domumornamentum.util.Constants;
+import io.github.fabricators_of_create.porting_lib.data.ExistingFileHelper;
+import io.github.fabricators_of_create.porting_lib.tags.data.BlockTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.BlockTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
-public class BrickBlockTagProvider extends BlockTagsProvider
+public class BrickBlockTagProvider extends BlockTagProvider
 {
-
-    public BrickBlockTagProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, Constants.MOD_ID, existingFileHelper);
+    public BrickBlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
+        super(output, lookupProvider);
     }
 
     @Override
@@ -30,8 +28,10 @@ public class BrickBlockTagProvider extends BlockTagsProvider
 
     @Override
     protected void addTags(HolderLookup.@NotNull Provider holderLookupProvider) {
-        this.tag(ModTags.BRICKS)
-                .add(IModBlocks.getInstance().getBricks().toArray(Block[]::new))
-                .add(IModBlocks.getInstance().getExtraTopBlocks().toArray(Block[]::new));
+        var bricks = IModBlocks.getInstance().getBricks().toArray(Block[]::new);
+        var extraBlocks = IModBlocks.getInstance().getExtraTopBlocks().toArray(Block[]::new);
+
+        TagProviderHelper.add(this.tag(ModTags.BRICKS), bricks);
+        TagProviderHelper.add(this.tag(ModTags.BRICKS), extraBlocks);
     }
 }

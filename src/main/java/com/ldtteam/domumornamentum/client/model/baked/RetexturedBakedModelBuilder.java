@@ -3,9 +3,11 @@ package com.ldtteam.domumornamentum.client.model.baked;
 import com.google.common.collect.Maps;
 import com.ldtteam.domumornamentum.client.model.utils.ModelSpriteQuadTransformer;
 import com.ldtteam.domumornamentum.client.model.utils.ModelSpriteQuadTransformerData;
+import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
+import com.ldtteam.domumornamentum.fabric.model.ModelData;
+import com.ldtteam.domumornamentum.fabric.rendering.IQuadTransformer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
@@ -16,9 +18,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.RenderTypeGroup;
-import net.minecraftforge.client.model.IQuadTransformer;
-import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,13 +69,13 @@ public class RetexturedBakedModelBuilder {
         final BakedModel bakedModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(defaultState);
 
         if (!itemStackMode) {
-            if (bakedModel.getRenderTypes(target.defaultBlockState(), RANDOM, ModelData.EMPTY).contains(this.renderType)) {
+            if (((BakedModelExtension) bakedModel).getRenderTypes(target.defaultBlockState(), RANDOM, ModelData.EMPTY).contains(this.renderType)) {
                 return this.with(source, bakedModel, defaultState);
             } else {
                 return this.withOut(source);
             }
         } else {
-            if (bakedModel.getRenderTypes(new ItemStack(target), Minecraft.useShaderTransparency()).contains(this.renderType)) {
+            if (((BakedModelExtension) bakedModel).getRenderTypes(new ItemStack(target), Minecraft.useShaderTransparency()).contains(this.renderType)) {
                 return this.with(source, bakedModel, defaultState);
             } else {
                 return this.withOut(source);
@@ -94,14 +93,14 @@ public class RetexturedBakedModelBuilder {
 
     public BakedModel build() {
         final SimpleBakedModel.Builder builder = new SimpleBakedModel.Builder(
-                sourceModel.useAmbientOcclusion(this.sourceState, this.renderType),
+                ((BakedModelExtension) sourceModel).useAmbientOcclusion(this.sourceState, this.renderType),
                 sourceModel.usesBlockLight(),
                 sourceModel.isGui3d(),
                 sourceModel.getTransforms(),
                 sourceModel.getOverrides()
         );
 
-        this.target.getQuads(null, null, RANDOM, ModelData.EMPTY, this.renderType).forEach(quad -> {
+        ((BakedModelExtension) this.target).getQuads(null, null, RANDOM, ModelData.EMPTY, this.renderType).forEach(quad -> {
             if (needsRetexturing(this.retexturingMaps, quad.getSprite())) {
                 retexture(quad, null).ifPresent(builder::addUnculledFace);
             } else if (!needsErasure(this.retexturingMaps, quad.getSprite())) {
@@ -110,7 +109,7 @@ public class RetexturedBakedModelBuilder {
         });
 
         for (final Direction value : Direction.values()) {
-            this.target.getQuads(null, value, RANDOM, ModelData.EMPTY, this.renderType).forEach(quad -> {
+            ((BakedModelExtension) this.target).getQuads(null, value, RANDOM, ModelData.EMPTY, this.renderType).forEach(quad -> {
                 if (needsRetexturing(this.retexturingMaps, quad.getSprite())) {
                     retexture(quad, value).ifPresent(newQuad -> builder.addCulledFace(value, newQuad));
                 } else if (!needsErasure(this.retexturingMaps, quad.getSprite())) {
@@ -119,10 +118,10 @@ public class RetexturedBakedModelBuilder {
             });
         }
 
-        TextureAtlasSprite particleTexture = this.target.getParticleIcon(ModelData.EMPTY);
+        TextureAtlasSprite particleTexture = ((BakedModelExtension) this.target).getParticleIcon(ModelData.EMPTY);
         if (needsRetexturing(this.retexturingMaps, particleTexture)) {
             final BakedModel particleOverrideTextureModel = this.retexturingMaps.get(particleTexture.contents().name()).model();
-            particleTexture = particleOverrideTextureModel.getParticleIcon(ModelData.EMPTY);
+            particleTexture = ((BakedModelExtension) particleOverrideTextureModel).getParticleIcon(ModelData.EMPTY);
         }
         builder.particle(particleTexture);
 
@@ -162,7 +161,7 @@ public class RetexturedBakedModelBuilder {
         }
 
         final ReplacementModelData modelData = this.retexturingMaps.get(source.getSprite().contents().name());
-        List<BakedQuad> targetQuads = modelData.model().getQuads(
+        List<BakedQuad> targetQuads = ((BakedModelExtension) modelData.model()).getQuads(
                 null,
                 direction,
                 RANDOM,
@@ -173,7 +172,7 @@ public class RetexturedBakedModelBuilder {
         //If we did not find anything, that might be because the target model specifies culling while our source did not.
         //Lets try with the targeting direction (the normal) of the quad itself.
         if (targetQuads.isEmpty())
-            targetQuads = modelData.model().getQuads(
+            targetQuads = ((BakedModelExtension) modelData.model()).getQuads(
                     null,
                     source.getDirection(),
                     RANDOM,

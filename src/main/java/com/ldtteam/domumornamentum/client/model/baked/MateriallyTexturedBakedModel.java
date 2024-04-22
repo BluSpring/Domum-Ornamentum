@@ -5,7 +5,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.client.model.properties.ModProperties;
-import com.mojang.datafixers.util.Pair;
+import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
+import com.ldtteam.domumornamentum.fabric.model.ModelData;
+import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
@@ -21,9 +23,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.RenderTypeGroup;
-import net.minecraftforge.client.model.data.ModelData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,7 @@ import java.util.stream.Stream;
 import static com.ldtteam.domumornamentum.util.MaterialTextureDataUtil.generateRandomTextureDataFrom;
 
 @SuppressWarnings("resource")
-public class MateriallyTexturedBakedModel implements BakedModel {
+public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExtension {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final RandomSource RANDOM = RandomSource.create();
     private static final ChunkRenderTypeSet SOLID_ONLY = ChunkRenderTypeSet.of(RenderType.solid());
@@ -84,7 +83,7 @@ public class MateriallyTexturedBakedModel implements BakedModel {
         return ChunkRenderTypeSet.union(
                 Stream.concat(
                         textureData.getTexturedComponents().values().stream()
-                                .map(block -> Minecraft.getInstance().getBlockRenderer().getBlockModel(block.defaultBlockState())
+                                .map(block -> ((BakedModelExtension) Minecraft.getInstance().getBlockRenderer().getBlockModel(block.defaultBlockState()))
                                         .getRenderTypes(block.defaultBlockState(), rand, ModelData.EMPTY)),
                         Stream.of(SOLID_ONLY))
                 .toArray(ChunkRenderTypeSet[]::new)
@@ -95,7 +94,7 @@ public class MateriallyTexturedBakedModel implements BakedModel {
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {
 
         final BakedModel remappedModel = getBakedInnerModelFor(data, state, renderType == null ? RenderType.solid() : renderType);
-        return remappedModel.getQuads(state, side, rand, data, renderType);
+        return ((BakedModelExtension) remappedModel).getQuads(state, side, rand, data, renderType);
     }
 
     @Override
@@ -137,7 +136,7 @@ public class MateriallyTexturedBakedModel implements BakedModel {
         if (!textureData.getTexturedComponents().containsKey(particleTextureName))
             return getParticleIcon();
 
-        return Minecraft.getInstance().getBlockRenderer().getBlockModel(textureData.getTexturedComponents().get(particleTextureName).defaultBlockState())
+        return ((BakedModelExtension) Minecraft.getInstance().getBlockRenderer().getBlockModel(textureData.getTexturedComponents().get(particleTextureName).defaultBlockState()))
                 .getParticleIcon(modelData);
     }
 

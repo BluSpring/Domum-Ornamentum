@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.block.*;
 import com.ldtteam.domumornamentum.recipe.ModRecipeTypes;
 import com.ldtteam.domumornamentum.recipe.architectscutter.ArchitectsCutterRecipe;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -16,11 +18,12 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.ldtteam.domumornamentum.util.GuiConstants.*;
@@ -180,17 +183,17 @@ public class ArchitectsCutterContainer extends AbstractContainerMenu
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public List<ArchitectsCutterRecipe> getRecipeList() {
         return this.recipes;
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public int getRecipeListSize() {
         return this.recipes.size();
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public boolean hasItemsInInputSlots() {
         return this.inputInventorySlots.stream().anyMatch(Slot::hasItem) && !this.recipes.isEmpty();
     }
@@ -304,7 +307,7 @@ public class ArchitectsCutterContainer extends AbstractContainerMenu
         return ModContainerTypes.ARCHITECTS_CUTTER.get();
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @Environment(EnvType.CLIENT)
     public void setInventoryUpdateListener(Runnable listenerIn) {
         this.inventoryUpdateListener = listenerIn;
     }

@@ -1,7 +1,7 @@
 package com.ldtteam.domumornamentum.client.model.properties;
 
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
-import net.minecraftforge.client.model.data.ModelProperty;
+import com.ldtteam.domumornamentum.fabric.model.ModelProperty;
 
 public class ModProperties
 {

@@ -49,7 +49,7 @@ public class ArchitectsCutterGuiHandler implements IGhostIngredientHandler<Archi
                                 @Override
                                 public Rect2i getArea()
                                 {
-                                    return new Rect2i(gui.getGuiLeft() + slot.x, gui.getGuiTop() + slot.y, 17, 17);
+                                    return new Rect2i(gui.getRectangle().left() + slot.x, gui.getRectangle().top() + slot.y, 17, 17);
                                 }
 
                                 @Override

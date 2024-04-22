@@ -5,24 +5,23 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.ldtteam.domumornamentum.client.model.geometry.MateriallyTexturedGeometry;
 import com.ldtteam.domumornamentum.util.Constants;
-import net.minecraft.server.packs.resources.ResourceManager;
+import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryLoader;
+import io.github.fabricators_of_create.porting_lib.models.geometry.RegisterGeometryLoadersCallback;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ModelEvent;
-import net.minecraftforge.client.model.geometry.GeometryLoaderManager;
-import net.minecraftforge.client.model.geometry.IGeometryLoader;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import org.jetbrains.annotations.NotNull;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+import java.util.Map;
+
 public class MateriallyTexturedModelLoader implements IGeometryLoader<MateriallyTexturedGeometry>
 {
+    public static void init() {
+        RegisterGeometryLoadersCallback.EVENT.register(loaders -> {
+            onModelRegistry(loaders);
+        });
+    }
 
-    @SubscribeEvent
-    public static void onModelRegistry(final ModelEvent.RegisterGeometryLoaders event)
+    public static void onModelRegistry(Map<ResourceLocation, IGeometryLoader<?>> loaders)
     {
-        event.register(Constants.MATERIALLY_TEXTURED_MODEL_LOADER, new MateriallyTexturedModelLoader());
+        loaders.put(new ResourceLocation(Constants.MOD_ID, Constants.MATERIALLY_TEXTURED_MODEL_LOADER), new MateriallyTexturedModelLoader());
     }
 
     @Override

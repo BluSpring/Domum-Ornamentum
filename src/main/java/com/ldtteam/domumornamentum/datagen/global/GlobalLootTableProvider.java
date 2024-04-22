@@ -1,6 +1,5 @@
 package com.ldtteam.domumornamentum.datagen.global;
 
-import com.google.common.collect.ImmutableList;
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.block.decorative.BrickBlock;
 import com.ldtteam.domumornamentum.block.decorative.ExtraBlock;
@@ -9,7 +8,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.flag.FeatureFlags;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +31,7 @@ public class GlobalLootTableProvider extends LootTableProvider
         }
 
         @Override
-        protected void generate() {
+        public void generate() {
             for (final BrickBlock block : ModBlocks.getInstance().getBricks())
             {
                 dropSelf(block);
@@ -54,7 +52,7 @@ public class GlobalLootTableProvider extends LootTableProvider
             dropSelf(ModBlocks.getInstance().getArchitectsCutter());
         }
 
-        @Override
+        /*@Override
         protected @NotNull Iterable<Block> getKnownBlocks() {
             return ImmutableList.<Block>builder()
                     .addAll(ModBlocks.getInstance().getBricks())
@@ -63,7 +61,7 @@ public class GlobalLootTableProvider extends LootTableProvider
                     .add(ModBlocks.getInstance().getStandingBarrel())
                     .add(ModBlocks.getInstance().getLayingBarrel())
                     .add(ModBlocks.getInstance().getArchitectsCutter()).build();
-        }
+        }*/
     }
 
     @Override

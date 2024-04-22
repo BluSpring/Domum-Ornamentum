@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.entity.block.IMateriallyTexturedBlockEntity;
 import com.ldtteam.domumornamentum.recipe.ModRecipeSerializers;
+import io.github.fabricators_of_create.porting_lib.block.CustomSoundTypeBlock;
+import io.github.fabricators_of_create.porting_lib.block.ExplosionResistanceBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
@@ -24,17 +26,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 public interface IMateriallyTexturedBlock
@@ -57,7 +54,7 @@ public interface IMateriallyTexturedBlock
               @Override
               public @NotNull ResourceLocation getId()
               {
-                  return Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(getBlock()));
+                  return Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(getBlock()));
               }
 
               @Override
@@ -118,7 +115,11 @@ public interface IMateriallyTexturedBlock
             Block block = mtbe.getTextureData().getTexturedComponents().get(getMainComponent().getId());
             if (block != null)
             {
-                return block.getExplosionResistance(state, level, pos, explosion);
+                if (block instanceof ExplosionResistanceBlock explosionResistanceBlock) {
+                    return explosionResistanceBlock.getExplosionResistance(state, level, pos, explosion);
+                }
+
+                return block.getExplosionResistance();
             }
         }
         return inputFunction.apply(state, level, pos, explosion);
@@ -140,21 +141,24 @@ public interface IMateriallyTexturedBlock
         return inputFunction.apply(state, player, level, pos);
     }
 
-    default SoundType getDOSoundType(final PropertyDispatch.QuadFunction<BlockState, LevelReader, BlockPos, Entity, SoundType> inputFunction, BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
+    default SoundType getDOSoundType(final Function<BlockState, SoundType> inputFunction, BlockState state, LevelReader level, BlockPos pos, @Nullable Entity entity) {
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof IMateriallyTexturedBlockEntity mtbe) {
             if (getMainComponent() == null)
             {
-                return inputFunction.apply(state, level, pos, entity);
+                return inputFunction.apply(state);
             }
             Block block = mtbe.getTextureData().getTexturedComponents().get(getMainComponent().getId());
             if (block != null)
             {
-                return block.getSoundType(state, level, pos, entity);
+                if (block instanceof CustomSoundTypeBlock customSoundTypeBlock)
+                    return customSoundTypeBlock.getSoundType(state, level, pos, entity);
+
+                return block.getSoundType(state);
             }
         }
 
-        return inputFunction.apply(state, level, pos, entity);
+        return inputFunction.apply(state);
     }
 
     default void fillDOItemCategory(final Block inputBlock, final @NotNull NonNullList<ItemStack> items, List<ItemStack> fillItemGroupCache) {

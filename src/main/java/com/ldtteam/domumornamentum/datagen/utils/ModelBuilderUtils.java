@@ -1,7 +1,7 @@
 package com.ldtteam.domumornamentum.datagen.utils;
 
+import io.github.fabricators_of_create.porting_lib.models.generators.ModelBuilder;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraftforge.client.model.generators.ModelBuilder;
 
 public final class ModelBuilderUtils {
 

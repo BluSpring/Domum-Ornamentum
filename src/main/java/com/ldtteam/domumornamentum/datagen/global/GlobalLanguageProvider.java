@@ -1,6 +1,5 @@
 package com.ldtteam.domumornamentum.datagen.global;
 
-import com.ldtteam.data.LanguageProvider;
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.datagen.allbrick.AllBrickLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.bricks.BrickLangEntryProvider;
@@ -13,8 +12,8 @@ import com.ldtteam.domumornamentum.datagen.floatingcarpet.FloatingCarpetLangEntr
 import com.ldtteam.domumornamentum.datagen.frames.light.FramedLightLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.frames.timber.TimberFramesLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.panel.PanelLangEntryProvider;
-import com.ldtteam.domumornamentum.datagen.post.PostLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.pillar.PillarLangEntryProvider;
+import com.ldtteam.domumornamentum.datagen.post.PostLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.shingle.normal.ShinglesLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.shingle.slab.ShingleSlabLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.slab.SlabLangEntryProvider;
@@ -24,45 +23,53 @@ import com.ldtteam.domumornamentum.datagen.trapdoor.fancy.FancyTrapdoorsLangEntr
 import com.ldtteam.domumornamentum.datagen.wall.paper.PaperwallLangEntryProvider;
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallLangEntryProvider;
 import com.ldtteam.domumornamentum.util.Constants;
-import net.minecraft.data.CachedOutput;
-import net.minecraft.data.DataGenerator;
+import io.github.fabricators_of_create.porting_lib.data.LanguageProvider;
+import net.minecraft.data.PackOutput;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public class GlobalLanguageProvider extends LanguageProvider
 {
-    public GlobalLanguageProvider(DataGenerator gen) {
-        super(gen, Constants.MOD_ID, Constants.DEFAULT_LANG, List.of(
-                new BrickLangEntryProvider(),
-                new DoorsLangEntryProvider(),
-                new FancyDoorsLangEntryProvider(),
-                new ExtraLangEntryProvider(),
-                new FenceLangEntryProvider(),
-                new FenceGateLangEntryProvider(),
-                new FloatingCarpetLangEntryProvider(),
-                new FramedLightLangEntryProvider(),
-                new TimberFramesLangEntryProvider(),
-                new GlobalLanguageEntries(),
-                new PanelLangEntryProvider(),
-                new PostLangEntryProvider(),
-                new PillarLangEntryProvider(),
-                new ShinglesLangEntryProvider(),
-                new ShingleSlabLangEntryProvider(),
-                new SlabLangEntryProvider(),
-                new StairsLangEntryProvider(),
-                new TrapdoorsLangEntryProvider(),
-                new FancyTrapdoorsLangEntryProvider(),
-                new PaperwallLangEntryProvider(),
-                new WallLangEntryProvider(),
-                new AllBrickLangEntryProvider()
-        ));
+    private final List<com.ldtteam.data.LanguageProvider.SubProvider> subProviders = List.of(
+        new BrickLangEntryProvider(),
+        new DoorsLangEntryProvider(),
+        new FancyDoorsLangEntryProvider(),
+        new ExtraLangEntryProvider(),
+        new FenceLangEntryProvider(),
+        new FenceGateLangEntryProvider(),
+        new FloatingCarpetLangEntryProvider(),
+        new FramedLightLangEntryProvider(),
+        new TimberFramesLangEntryProvider(),
+        new GlobalLanguageEntries(),
+        new PanelLangEntryProvider(),
+        new PostLangEntryProvider(),
+        new PillarLangEntryProvider(),
+        new ShinglesLangEntryProvider(),
+        new ShingleSlabLangEntryProvider(),
+        new SlabLangEntryProvider(),
+        new StairsLangEntryProvider(),
+        new TrapdoorsLangEntryProvider(),
+        new FancyTrapdoorsLangEntryProvider(),
+        new PaperwallLangEntryProvider(),
+        new WallLangEntryProvider(),
+        new AllBrickLangEntryProvider()
+    );
+    
+    public GlobalLanguageProvider(PackOutput gen) {
+        super(gen, Constants.MOD_ID, Constants.DEFAULT_LANG);
     }
 
-    private final static class GlobalLanguageEntries implements SubProvider {
+    private final static class GlobalLanguageEntries implements com.ldtteam.data.LanguageProvider.SubProvider {
         @Override
-        public void addTranslations(LanguageAcceptor acceptor) {
+        public void addTranslations(com.ldtteam.data.LanguageProvider.LanguageAcceptor acceptor) {
             acceptor.add("itemGroup." + Constants.MOD_ID + ".timber_frames", "DO - Framed Blocks");
             acceptor.add("itemGroup." + Constants.MOD_ID + ".shingles", "DO - Shingles");
             acceptor.add("itemGroup." + Constants.MOD_ID + ".general", "Domum Ornamentum (DO)");
@@ -110,9 +117,71 @@ public class GlobalLanguageProvider extends LanguageProvider
     }
 
     @Override
+    protected void addTranslations() {
+        var acceptor = new InternalAcceptor();
+        for (final com.ldtteam.data.LanguageProvider.SubProvider subProvider : subProviders) {
+            subProvider.addTranslations(acceptor);
+        }
+    }
+
+    @Override
     @NotNull
     public String getName()
     {
         return "Global Lang Provider";
+    }
+
+    private final class InternalAcceptor implements com.ldtteam.data.LanguageProvider.LanguageAcceptor {
+        public void addBlock(Supplier<? extends Block> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(Block key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        public void addItem(Supplier<? extends Item> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(Item key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        public void addItemStack(Supplier<ItemStack> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(ItemStack key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        public void addEnchantment(Supplier<? extends Enchantment> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(Enchantment key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        public void addEffect(Supplier<? extends MobEffect> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(MobEffect key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        public void addEntityType(Supplier<? extends EntityType<?>> key, String name) {
+            GlobalLanguageProvider.this.add(key.get(), name);
+        }
+
+        public void add(EntityType<?> key, String name) {
+            GlobalLanguageProvider.this.add(key, name);
+        }
+
+        @Override
+        public void add(String key, String value) {
+        }
     }
 }

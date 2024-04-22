@@ -2,19 +2,20 @@ package com.ldtteam.domumornamentum.datagen.bricks;
 
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.block.decorative.BrickBlock;
+import com.ldtteam.domumornamentum.mixin.DataGeneratorAccessor;
 import com.ldtteam.domumornamentum.util.Constants;
+import io.github.fabricators_of_create.porting_lib.data.ExistingFileHelper;
+import io.github.fabricators_of_create.porting_lib.models.generators.ModelFile;
+import io.github.fabricators_of_create.porting_lib.models.generators.block.BlockStateProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 public class BrickBlockStateProvider extends BlockStateProvider
 {
     public BrickBlockStateProvider(DataGenerator generator, ExistingFileHelper existingFileHelper)
     {
-        super(generator.getPackOutput(), Constants.MOD_ID, existingFileHelper);
+        super(((DataGeneratorAccessor) generator).getPackOutput(), Constants.MOD_ID, existingFileHelper);
     }
 
     @Override

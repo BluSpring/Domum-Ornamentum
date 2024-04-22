@@ -9,7 +9,9 @@ import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.recipe.ModRecipeSerializers;
 import com.ldtteam.domumornamentum.recipe.ModRecipeTypes;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -17,10 +19,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -58,10 +58,10 @@ public class ArchitectsCutterRecipe implements Recipe<Container>
     @Override
     public boolean matches(final @NotNull Container inv, final @NotNull Level worldIn)
     {
-        if (!ForgeRegistries.BLOCKS.containsKey(getBlockName()))
+        if (!BuiltInRegistries.BLOCK.containsKey(getBlockName()))
             return false;
 
-        final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(getBlockName());
+        final Block generatedBlock = BuiltInRegistries.BLOCK.get(getBlockName());
 
         if (!(generatedBlock instanceof final IMateriallyTexturedBlock materiallyTexturedBlock))
             return false;
@@ -88,10 +88,10 @@ public class ArchitectsCutterRecipe implements Recipe<Container>
     @Override
     public @NotNull ItemStack assemble(final @NotNull Container inv, final RegistryAccess registryAccess)
     {
-        if (!ForgeRegistries.BLOCKS.containsKey(getBlockName()))
+        if (!BuiltInRegistries.BLOCK.containsKey(getBlockName()))
             return ItemStack.EMPTY;
 
-        final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(getBlockName());
+        final Block generatedBlock = BuiltInRegistries.BLOCK.get(getBlockName());
 
         if (!(generatedBlock instanceof final IMateriallyTexturedBlock materiallyTexturedBlock))
             return ItemStack.EMPTY;
@@ -142,10 +142,10 @@ public class ArchitectsCutterRecipe implements Recipe<Container>
     @Override
     public @NotNull ItemStack getResultItem(final RegistryAccess registryAccess)
     {
-        if (!ForgeRegistries.BLOCKS.containsKey(getBlockName()))
+        if (!BuiltInRegistries.BLOCK.containsKey(getBlockName()))
             return ItemStack.EMPTY;
 
-        final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(getBlockName());
+        final Block generatedBlock = BuiltInRegistries.BLOCK.get(getBlockName());
 
         if (!(generatedBlock instanceof IMateriallyTexturedBlock))
             return ItemStack.EMPTY;

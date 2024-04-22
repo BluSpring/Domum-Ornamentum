@@ -1,10 +1,10 @@
 package com.ldtteam.domumornamentum.block;
 
 import com.google.common.collect.Lists;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.level.block.Block;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +34,7 @@ public final class MateriallyTexturedBlockManager implements IMateriallyTextured
             return this.maxTexturableComponentCount;
 
         if (this.blocks.isEmpty()) {
-            this.blocks = StreamSupport.stream(ForgeRegistries.BLOCKS.spliterator(), false)
+            this.blocks = StreamSupport.stream(BuiltInRegistries.BLOCK.spliterator(), false)
               .filter(IMateriallyTexturedBlock.class::isInstance)
               .map(IMateriallyTexturedBlock.class::cast)
               .collect(Collectors.toList());

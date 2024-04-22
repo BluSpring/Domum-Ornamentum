@@ -1,19 +1,12 @@
 package com.ldtteam.domumornamentum.client.model.geometry;
 
 import com.ldtteam.domumornamentum.client.model.baked.MateriallyTexturedBakedModel;
+import io.github.fabricators_of_create.porting_lib.models.geometry.IUnbakedGeometry;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBaker;
-import net.minecraft.client.resources.model.ModelState;
-import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.client.resources.model.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
-import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.function.Function;
 
@@ -27,7 +20,7 @@ public class MateriallyTexturedGeometry implements IUnbakedGeometry<MateriallyTe
     }
 
     @Override
-    public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation) {
+    public BakedModel bake(BlockModel context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides, ResourceLocation modelLocation, boolean isGui3d) {
         final UnbakedModel innerModel = baker.getModel(this.innerModelLocation);
 
         if (!(innerModel instanceof BlockModel)) {
@@ -35,7 +28,7 @@ public class MateriallyTexturedGeometry implements IUnbakedGeometry<MateriallyTe
         }
 
         final BakedModel innerBakedModel = innerModel.bake(
-                baker, spriteGetter, modelState, modelLocation
+            baker, spriteGetter, modelState, modelLocation
         );
 
         return new MateriallyTexturedBakedModel(innerBakedModel);

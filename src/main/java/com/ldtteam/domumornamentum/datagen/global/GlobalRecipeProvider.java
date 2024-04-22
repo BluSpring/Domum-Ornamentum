@@ -33,7 +33,7 @@ public class GlobalRecipeProvider extends RecipeProvider {
     }
 
     @Override
-    protected void buildRecipes(@NotNull Consumer<FinishedRecipe> writer) {
+    public void buildRecipes(@NotNull Consumer<FinishedRecipe> writer) {
         buildCutterRecipe(writer);
         buildBarrelRecipe(writer);
     }

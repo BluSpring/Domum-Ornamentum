@@ -9,10 +9,8 @@ import com.ldtteam.domumornamentum.datagen.bricks.BrickBlockTagProvider;
 import com.ldtteam.domumornamentum.datagen.bricks.BrickItemTagProvider;
 import com.ldtteam.domumornamentum.datagen.bricks.BrickRecipeProvider;
 import com.ldtteam.domumornamentum.datagen.door.DoorsBlockStateProvider;
-import com.ldtteam.domumornamentum.datagen.door.DoorsCompatibilityTagProvider;
 import com.ldtteam.domumornamentum.datagen.door.DoorsComponentTagProvider;
 import com.ldtteam.domumornamentum.datagen.door.fancy.FancyDoorsBlockStateProvider;
-import com.ldtteam.domumornamentum.datagen.door.fancy.FancyDoorsCompatibilityTagProvider;
 import com.ldtteam.domumornamentum.datagen.door.fancy.FancyDoorsComponentTagProvider;
 import com.ldtteam.domumornamentum.datagen.extra.ExtraBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.extra.ExtraBlockTagProvider;
@@ -31,11 +29,7 @@ import com.ldtteam.domumornamentum.datagen.frames.light.FramedLightBlockStatePro
 import com.ldtteam.domumornamentum.datagen.frames.light.FramedLightComponentTagProvider;
 import com.ldtteam.domumornamentum.datagen.frames.timber.TimberFramesBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.frames.timber.TimberFramesComponentTagProvider;
-import com.ldtteam.domumornamentum.datagen.global.GlobalLanguageProvider;
-import com.ldtteam.domumornamentum.datagen.global.GlobalLootTableProvider;
-import com.ldtteam.domumornamentum.datagen.global.GlobalRecipeProvider;
-import com.ldtteam.domumornamentum.datagen.global.GlobalTagProvider;
-import com.ldtteam.domumornamentum.datagen.global.MateriallyTexturedBlockRecipeProvider;
+import com.ldtteam.domumornamentum.datagen.global.*;
 import com.ldtteam.domumornamentum.datagen.panel.PanelBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.pillar.PillarBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.pillar.PillarComponentTagProvider;
@@ -62,137 +56,141 @@ import com.ldtteam.domumornamentum.datagen.wall.paper.PaperwallComponentTagProvi
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallCompatibilityTagProvider;
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallComponentTagProvider;
-import com.ldtteam.domumornamentum.util.Constants;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import io.github.fabricators_of_create.porting_lib.data.ExistingFileHelper;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+import java.util.concurrent.atomic.AtomicReference;
+
 public class ModBusEventHandler
 {
     /**
      * Called when mod is being initialized.
      *
-     * @param event event
      */
-    @SubscribeEvent
-    public static void onModInit(final FMLCommonSetupEvent event)
+    public static void onModInit()
     {
         Network.getNetwork().registerMessages();
     }
 
-    @SubscribeEvent
-    public static void dataGeneratorSetup(final GatherDataEvent event)
+    public static void dataGeneratorSetup(final FabricDataGenerator generator)
     {
+        var pack = generator.createPack();
+        var existingFileHelper = ExistingFileHelper.withResourcesFromArg();
+        
         //Extra blocks
-        event.getGenerator().addProvider(true, new ExtraBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new ExtraRecipeProvider(event.getGenerator().getPackOutput()));
-        final ExtraBlockTagProvider extraBlockTagProvider = new ExtraBlockTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper());
-        event.getGenerator().addProvider(true, extraBlockTagProvider);
-        event.getGenerator().addProvider(true, new ExtraItemTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), extraBlockTagProvider.contentsGetter(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new ExtraBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new ExtraRecipeProvider(output));
+        AtomicReference<ExtraBlockTagProvider> extraBlockTagProvider = new AtomicReference<>();
+        pack.addProvider((output, future) -> {
+            extraBlockTagProvider.set(new ExtraBlockTagProvider(output, future, existingFileHelper));
+            return extraBlockTagProvider.get();
+        });
+        pack.addProvider((output, future) -> new ExtraItemTagProvider(output, future, extraBlockTagProvider.get().contentsGetter(), existingFileHelper));
 
         //Brick blocks
-        event.getGenerator().addProvider(true, new BrickBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new BrickRecipeProvider(event.getGenerator().getPackOutput()));
-        final BrickBlockTagProvider brickBlockTagProvider = new BrickBlockTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper());
-        event.getGenerator().addProvider(true, brickBlockTagProvider);
-        event.getGenerator().addProvider(true, new BrickItemTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), brickBlockTagProvider.contentsGetter(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new BrickBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new BrickRecipeProvider(output));
+        final AtomicReference<BrickBlockTagProvider> brickBlockTagProvider = new AtomicReference<>();
+        pack.addProvider((output, future) -> {
+            brickBlockTagProvider.set(new BrickBlockTagProvider(output, future, existingFileHelper));
+            return brickBlockTagProvider.get();
+        });
+        pack.addProvider((output, future) -> new BrickItemTagProvider(output, future, brickBlockTagProvider.get()));
 
-        event.getGenerator().addProvider(true, new GlobalTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new GlobalTagProvider(output, future, existingFileHelper));
 
         // Timber Frames
-        event.getGenerator().addProvider(true, new TimberFramesBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new TimberFramesComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new TimberFramesBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new TimberFramesComponentTagProvider(output, future, existingFileHelper));
 
         // Framed Light
-        event.getGenerator().addProvider(true, new FramedLightBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FramedLightComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new FramedLightBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FramedLightComponentTagProvider(output, future, existingFileHelper));
 
         //Shingles
-        event.getGenerator().addProvider(true, new ShinglesBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new ShinglesComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new ShinglesBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new ShinglesComponentTagProvider(output, future, existingFileHelper));
 
         //ShingleSlab
-        event.getGenerator().addProvider(true, new ShingleSlabBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new ShingleSlabComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new ShingleSlabBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new ShingleSlabComponentTagProvider(output, future, existingFileHelper));
 
         //Paper wall
-        event.getGenerator().addProvider(true, new PaperwallBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new PaperwallComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new PaperwallBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new PaperwallComponentTagProvider(output, future, existingFileHelper));
 
         //Fence
-        event.getGenerator().addProvider(true, new FenceBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FenceComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FenceCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new FenceBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FenceComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new FenceCompatibilityTagProvider(output, future, existingFileHelper));
 
         //FenceGate
-        event.getGenerator().addProvider(true, new FenceGateBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FenceGateComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FenceGateCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new FenceGateBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FenceGateComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new FenceGateCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Slab
-        event.getGenerator().addProvider(true, new SlabBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new SlabComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new SlabCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new SlabBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new SlabComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new SlabCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Wall
-        event.getGenerator().addProvider(true, new WallBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new WallComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new WallCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new WallBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new WallComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new WallCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Stair
-        event.getGenerator().addProvider(true, new StairsBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new StairsComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new StairsCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new StairsBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new StairsComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new StairsCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Trapdoor
-        event.getGenerator().addProvider(true, new TrapdoorsBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new TrapdoorsComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new TrapdoorsCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new TrapdoorsBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new TrapdoorsComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new TrapdoorsCompatibilityTagProvider(output, future, existingFileHelper));
 
-        event.getGenerator().addProvider(true, new PanelBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new PanelBlockStateProvider(generator, existingFileHelper));
 
         //Post
-        event.getGenerator().addProvider(true, new PostBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new PostComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new PostBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new PostComponentTagProvider(output, future, existingFileHelper));
 
 
         //Fancy Trapdoor
-        event.getGenerator().addProvider(true, new FancyTrapdoorsBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FancyTrapdoorsComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FancyTrapdoorsCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new FancyTrapdoorsBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FancyTrapdoorsComponentTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new FancyTrapdoorsCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Door
-        event.getGenerator().addProvider(true, new DoorsBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new DoorsComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new DoorsBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new DoorsComponentTagProvider(output, future, existingFileHelper));
         // Commented to temporarily prevent the tag generation issue for doors
-        //event.getGenerator().addProvider(true, new DoorsCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        //pack.addProvider((output, future) -> new DoorsCompatibilityTagProvider(output, future, existingFileHelper));
 
         //FancyDoor
-        event.getGenerator().addProvider(true, new FancyDoorsBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FancyDoorsComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        //event.getGenerator().addProvider(true, new FancyDoorsCompatibilityTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new FancyDoorsBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FancyDoorsComponentTagProvider(output, future, existingFileHelper));
+        //pack.addProvider((output, future) -> new FancyDoorsCompatibilityTagProvider(output, future, existingFileHelper));
 
         //Floating carpets
-        event.getGenerator().addProvider(true, new FloatingCarpetBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FloatingCarpetBlockTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new FloatingCarpetRecipeProvider(event.getGenerator().getPackOutput()));
+        pack.addProvider((output, future) -> new FloatingCarpetBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new FloatingCarpetBlockTagProvider(output, future, existingFileHelper));
+        pack.addProvider((output, future) -> new FloatingCarpetRecipeProvider(output));
 
         //Pillars
-        event.getGenerator().addProvider(true, new PillarBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new PillarComponentTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new PillarBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new PillarComponentTagProvider(output, future, existingFileHelper));
 
         //AllBrick
-        event.getGenerator().addProvider(true, new AllBrickBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
-        event.getGenerator().addProvider(true, new AllBrickStairBlockStateProvider(event.getGenerator(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new AllBrickBlockStateProvider(generator, existingFileHelper));
+        pack.addProvider((output, future) -> new AllBrickStairBlockStateProvider(generator, existingFileHelper));
 
-        event.getGenerator().addProvider(true, new AllBrickBlockTagProvider(event.getGenerator().getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
+        pack.addProvider((output, future) -> new AllBrickBlockTagProvider(output, future, existingFileHelper));
 
         //Global
-        event.getGenerator().addProvider(true, new GlobalRecipeProvider(event.getGenerator().getPackOutput()));
-        event.getGenerator().addProvider(true, new GlobalLanguageProvider(event.getGenerator()));
-        event.getGenerator().addProvider(true, new GlobalLootTableProvider(event.getGenerator().getPackOutput()));
-        event.getGenerator().addProvider(true, new MateriallyTexturedBlockRecipeProvider(event.getGenerator().getPackOutput()));
+        pack.addProvider((output, future) -> new GlobalRecipeProvider(output));
+        pack.addProvider((output, future) -> new GlobalLanguageProvider(output));
+        pack.addProvider((output, future) -> new GlobalLootTableProvider(output));
+        pack.addProvider((output, future) -> new MateriallyTexturedBlockRecipeProvider(output));
     }
 }

@@ -9,9 +9,10 @@ import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlockComponent;
 import com.ldtteam.domumornamentum.block.components.SimpleRetexturableComponent;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.entity.block.MateriallyTexturedBlockEntity;
-import com.ldtteam.domumornamentum.entity.block.ModBlockEntityTypes;
 import com.ldtteam.domumornamentum.tag.ModTags;
 import com.ldtteam.domumornamentum.util.BlockUtils;
+import io.github.fabricators_of_create.porting_lib.block.CustomSoundTypeBlock;
+import io.github.fabricators_of_create.porting_lib.block.ExplosionResistanceBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -31,8 +32,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +39,7 @@ import java.util.List;
 
 import static net.minecraft.world.level.block.Blocks.OAK_PLANKS;
 
-public class FenceGateBlock extends AbstractBlockFenceGate<FenceGateBlock> implements IMateriallyTexturedBlock, EntityBlock, ICachedItemGroupBlock
+public class FenceGateBlock extends AbstractBlockFenceGate<FenceGateBlock> implements IMateriallyTexturedBlock, EntityBlock, ICachedItemGroupBlock, CustomSoundTypeBlock, ExplosionResistanceBlock
 {
     public static final List<IMateriallyTexturedBlockComponent> COMPONENTS = ImmutableList.<IMateriallyTexturedBlockComponent>builder()
                                                                                .add(new SimpleRetexturableComponent(new ResourceLocation("minecraft:block/oak_planks"), ModTags.FENCE_GATE_MATERIALS, OAK_PLANKS))
@@ -93,9 +92,8 @@ public class FenceGateBlock extends AbstractBlockFenceGate<FenceGateBlock> imple
     }
 
     @Override
-    public ItemStack getCloneItemStack(final BlockState state, final HitResult target, final BlockGetter world, final BlockPos pos, final Player player)
-    {
-        return BlockUtils.getMaterializedItemStack(player, world, pos);
+    public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+        return BlockUtils.getMaterializedItemStack(null, level, pos);
     }
 
     @Override
@@ -106,7 +104,7 @@ public class FenceGateBlock extends AbstractBlockFenceGate<FenceGateBlock> imple
 
     @Override
     public float getExplosionResistance(BlockState state, BlockGetter level, BlockPos pos, Explosion explosion) {
-        return getDOExplosionResistance(super::getExplosionResistance, state, level, pos, explosion);
+        return getDOExplosionResistance(ExplosionResistanceBlock.super::getExplosionResistance, state, level, pos, explosion);
     }
 
     @Override

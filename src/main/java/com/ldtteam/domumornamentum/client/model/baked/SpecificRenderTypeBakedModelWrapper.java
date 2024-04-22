@@ -1,6 +1,9 @@
 package com.ldtteam.domumornamentum.client.model.baked;
 
 import com.google.common.collect.ImmutableList;
+import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
+import com.ldtteam.domumornamentum.fabric.model.ModelData;
+import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -15,16 +18,13 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.RenderTypeGroup;
-import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-public class SpecificRenderTypeBakedModelWrapper implements BakedModel {
+public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedModelExtension {
 
     private final RenderType renderType;
     private final BakedModel innerModel;
@@ -45,7 +45,7 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel {
             return Collections.emptyList();
         }
 
-        return innerModel.getQuads(state, side, rand, data, renderType);
+        return ((BakedModelExtension) innerModel).getQuads(state, side, rand, data, renderType);
     }
 
     @Override
@@ -55,12 +55,12 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel {
 
     @Override
     public boolean useAmbientOcclusion(BlockState state) {
-        return innerModel.useAmbientOcclusion(state);
+        return ((BakedModelExtension) innerModel).useAmbientOcclusion(state);
     }
 
     @Override
     public boolean useAmbientOcclusion(BlockState state, RenderType renderType) {
-        return innerModel.useAmbientOcclusion(state, renderType);
+        return ((BakedModelExtension) innerModel).useAmbientOcclusion(state, renderType);
     }
 
     @Override
@@ -96,17 +96,17 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel {
     @Override
     public BakedModel applyTransform(final ItemDisplayContext transformType, final PoseStack poseStack, final boolean applyLeftHandTransform)
     {
-        return innerModel.applyTransform(transformType, poseStack, applyLeftHandTransform);
+        return ((BakedModelExtension) innerModel).applyTransform(transformType, poseStack, applyLeftHandTransform);
     }
 
     @Override
     public @NotNull ModelData getModelData(@NotNull BlockAndTintGetter level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData modelData) {
-        return innerModel.getModelData(level, pos, state, modelData);
+        return ((BakedModelExtension) innerModel).getModelData(level, pos, state, modelData);
     }
 
     @Override
     public TextureAtlasSprite getParticleIcon(@NotNull ModelData data) {
-        return innerModel.getParticleIcon(data);
+        return ((BakedModelExtension) innerModel).getParticleIcon(data);
     }
 
     @Override

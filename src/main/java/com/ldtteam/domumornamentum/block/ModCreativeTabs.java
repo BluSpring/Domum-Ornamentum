@@ -1,15 +1,15 @@
 package com.ldtteam.domumornamentum.block;
 
 import com.ldtteam.domumornamentum.shingles.ShingleHeightType;
+import io.github.fabricators_of_create.porting_lib.util.LazyRegistrar;
+import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
 import static com.ldtteam.domumornamentum.util.Constants.MOD_ID;
@@ -17,12 +17,11 @@ import static com.ldtteam.domumornamentum.util.Constants.MOD_ID;
 /**
  * Class used to handle the creativeTab of structurize.
  */
-@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ModCreativeTabs {
 
-    public static final DeferredRegister<CreativeModeTab> TAB_REG = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
+    public static final LazyRegistrar<CreativeModeTab> TAB_REG = LazyRegistrar.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
-    public static final RegistryObject<CreativeModeTab> GENERAL = TAB_REG.register("general", () -> CreativeModeTab.builder()
+    public static final RegistryObject<CreativeModeTab> GENERAL = TAB_REG.register("general", () -> FabricItemGroup.builder()
             .icon(() -> new ItemStack(ModBlocks.getInstance().getArchitectsCutter()))
             .title(Component.translatable("itemGroup." + MOD_ID + ".general"))
             .displayItems(new OutputAwareGenerator((config, output) -> {
@@ -53,8 +52,8 @@ public final class ModCreativeTabs {
         output.accept(ModBlocks.getInstance().getFancyTrapdoor());
     })).build());
 
-    public static final RegistryObject<CreativeModeTab> EXTRA_BLOCKS = TAB_REG.register("extra_blocks", () -> CreativeModeTab.builder()
-            .withTabsBefore(GENERAL.getId())
+    public static final RegistryObject<CreativeModeTab> EXTRA_BLOCKS = TAB_REG.register("extra_blocks", () -> FabricItemGroup.builder()
+            //.withTabsBefore(GENERAL.getId())
             .icon(() -> new ItemStack(ModBlocks.getInstance().getExtraTopBlocks().get(0)))
             .title(Component.translatable("itemGroup." + MOD_ID + ".extra-blocks"))
             .displayItems(new OutputAwareGenerator((config, output) -> {
@@ -64,8 +63,8 @@ public final class ModCreativeTabs {
         output.accept(ModBlocks.getInstance().getLayingBarrel());
     })).build());
 
-    public static final RegistryObject<CreativeModeTab> FLOATING_CARPETS = TAB_REG.register("floating_carpets", () -> CreativeModeTab.builder()
-            .withTabsBefore(EXTRA_BLOCKS.getId())
+    public static final RegistryObject<CreativeModeTab> FLOATING_CARPETS = TAB_REG.register("floating_carpets", () -> FabricItemGroup.builder()
+            //.withTabsBefore(EXTRA_BLOCKS.getId())
             .icon(() -> new ItemStack(ModBlocks.getInstance().getFloatingCarpets().get(0)))
             .title(Component.translatable("itemGroup." + MOD_ID + ".floating-carpets"))
             .displayItems(new OutputAwareGenerator((config, output) -> {

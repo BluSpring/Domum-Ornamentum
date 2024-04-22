@@ -1,5 +1,9 @@
 package com.ldtteam.domumornamentum.client.render;
 
+import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
+import com.ldtteam.domumornamentum.fabric.model.ModelData;
+import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
+import com.ldtteam.domumornamentum.mixin.ItemRendererAccessor;
 import com.ldtteam.domumornamentum.util.ItemStackUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -25,8 +29,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.ChunkRenderTypeSet;
-import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -107,8 +109,8 @@ public class ModelGhostRenderer {
                         blockEntity.setChanged();
                     }
 
-                    modelData = blockEntity.getModelData();
-                    modelData = model.getModelData(Minecraft.getInstance().level, context.getClickedPos(), placementState, modelData);
+                    modelData = ModelData.EMPTY;
+                    modelData = ((BakedModelExtension) model).getModelData(Minecraft.getInstance().level, context.getClickedPos(), placementState, modelData);
                 }
             }
 
@@ -118,7 +120,7 @@ public class ModelGhostRenderer {
 
             final RandomSource randomSource = RandomSource.create();
             randomSource.setSeed(42L);
-            final ChunkRenderTypeSet renderTypeSet = model.getRenderTypes(placementState, randomSource, modelData);
+            final ChunkRenderTypeSet renderTypeSet = ((BakedModelExtension) model).getRenderTypes(placementState, randomSource, modelData);
             models = renderTypeSet.asList().stream()
                     .map(renderType -> new ModelToRender(model, renderType))
                     .toList();
@@ -126,11 +128,11 @@ public class ModelGhostRenderer {
         } else {
             placementState = null;
             final BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(renderStack, null, null, 0);
-            final List<BakedModel> renderPasses = model.getRenderPasses(renderStack, true);
+            final List<BakedModel> renderPasses = ((BakedModelExtension) model).getRenderPasses(renderStack, true);
             //TODO; Figure this out.
             modelData = ModelData.EMPTY;
             models = renderPasses.stream()
-                    .flatMap(pass -> pass.getRenderTypes(renderStack, true).stream().map(type -> new ModelToRender(pass, type)))
+                    .flatMap(pass -> ((BakedModelExtension) pass).getRenderTypes(renderStack, true).stream().map(type -> new ModelToRender(pass, type)))
                     .toList();
             renderItemMode = true;
         }
@@ -235,16 +237,16 @@ public class ModelGhostRenderer {
         for(Direction direction : Direction.values()) {
             randomsource.setSeed(42L);
             if (renderItemMode)
-                Minecraft.getInstance().getItemRenderer().renderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, direction, randomsource, modelData, pModel.renderType()), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
+                ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, direction, randomsource/*, modelData, pModel.renderType()*/), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
             else
-                renderBlockTintedQuadList(pPoseStack, pModel.model().getQuads(state, direction, randomsource, modelData, pModel.renderType()), state, pos);
+                renderBlockTintedQuadList(pPoseStack, ((BakedModelExtension) pModel.model()).getQuads(state, direction, randomsource, modelData, pModel.renderType()), state, pos);
         }
 
         randomsource.setSeed(42L);
         if (renderItemMode)
-            Minecraft.getInstance().getItemRenderer().renderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, null, randomsource, modelData, pModel.renderType()), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
+            ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, null, randomsource/*, modelData, pModel.renderType()*/), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
         else
-            renderBlockTintedQuadList(pPoseStack, pModel.model().getQuads(state, null, randomsource, modelData, pModel.renderType()), state, pos);
+            renderBlockTintedQuadList(pPoseStack, ((BakedModelExtension) pModel.model()).getQuads(state, null, randomsource, modelData, pModel.renderType()), state, pos);
     }
 
     private static void renderBlockTintedQuadList(PoseStack pPoseStack, List<BakedQuad> pQuads, BlockState placementState, BlockPos pos) {
@@ -259,7 +261,8 @@ public class ModelGhostRenderer {
             float f = (float)(i >> 16 & 0xFF) / 255.0F;
             float f1 = (float)(i >> 8 & 0xFF) / 255.0F;
             float f2 = (float)(i & 0xFF) / 255.0F;
-            ModelGhostRenderer.BUFFER.putBulkData(posestack$pose, bakedquad, f, f1, f2, 1.0F, 15728880, OverlayTexture.NO_OVERLAY, true);
+            int packedLight = 15728880;
+            ModelGhostRenderer.BUFFER.putBulkData(posestack$pose, bakedquad, new float[] { 1.0F, 1.0F, 1.0F, 1.0F }, f, f1, f2, new int[] { packedLight, packedLight, packedLight, packedLight }, OverlayTexture.NO_OVERLAY, true);
         }
     }
 
@@ -284,12 +287,12 @@ public class ModelGhostRenderer {
         for (final Direction direction : Direction.values()) {
             // Render outer directional quads
             random.setSeed(42L);
-            renderColoredQuadList(poseStack.last().pose(), model.model().getQuads(state, direction, random, modelData, model.renderType()), normals, shadedColors, pos);
+            renderColoredQuadList(poseStack.last().pose(), ((BakedModelExtension) model.model()).getQuads(state, direction, random, modelData, model.renderType()), normals, shadedColors, pos);
         }
 
         // Render quads of unspecified direction
         random.setSeed(42L);
-        renderColoredQuadList(poseStack.last().pose(), model.model().getQuads(state, null, random, modelData, model.renderType()), normals, shadedColors, pos);
+        renderColoredQuadList(poseStack.last().pose(), ((BakedModelExtension) model.model()).getQuads(state, null, random, modelData, model.renderType()), normals, shadedColors, pos);
     }
 
     /**

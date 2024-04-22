@@ -3,25 +3,24 @@ package com.ldtteam.domumornamentum.client.event.handlers;
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.client.color.MateriallyTexturedBlockBlockColor;
 import com.ldtteam.domumornamentum.client.color.MateriallyTexturedBlockItemColor;
-import com.ldtteam.domumornamentum.util.Constants;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import io.github.fabricators_of_create.porting_lib.event.client.ColorHandlersCallback;
+import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.color.item.ItemColors;
 
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class RegisterColorHandlersEventHandler {
+    public static void init() {
+        ColorHandlersCallback.BLOCK.register(RegisterColorHandlersEventHandler::onRegisterColorHandlersBlock);
+        ColorHandlersCallback.ITEM.register(RegisterColorHandlersEventHandler::onRegisterColorHandlersItem);
+    }
 
-    @SubscribeEvent
-    public static void onRegisterColorHandlersItem(RegisterColorHandlersEvent.Item event) {
+    public static void onRegisterColorHandlersItem(ItemColors event, BlockColors blockColors) {
         event.register(
                 new MateriallyTexturedBlockItemColor(),
                 ModBlocks.getMateriallyTexturableItems()
         );
     }
 
-    @SubscribeEvent
-    public static void onRegisterColorHandlersBlock(RegisterColorHandlersEvent.Block event) {
+    public static void onRegisterColorHandlersBlock(BlockColors event) {
         event.register(
                 new MateriallyTexturedBlockBlockColor(),
                 ModBlocks.getMateriallyTexturableBlocks()

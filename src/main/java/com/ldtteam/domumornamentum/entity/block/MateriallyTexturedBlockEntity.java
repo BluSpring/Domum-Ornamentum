@@ -3,7 +3,11 @@ package com.ldtteam.domumornamentum.entity.block;
 import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlock;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.client.model.properties.ModProperties;
+import com.ldtteam.domumornamentum.fabric.BlockEntityExtension;
+import com.ldtteam.domumornamentum.fabric.model.ModelData;
 import com.ldtteam.domumornamentum.util.MaterialTextureDataUtil;
+import io.github.fabricators_of_create.porting_lib.block.CustomDataPacketHandlingBlockEntity;
+import io.github.fabricators_of_create.porting_lib.block.CustomUpdateTagHandlingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -13,14 +17,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static com.ldtteam.domumornamentum.entity.block.ModBlockEntityTypes.MATERIALLY_TEXTURED;
 
-public class MateriallyTexturedBlockEntity extends BlockEntity implements IMateriallyTexturedBlockEntity
+public class MateriallyTexturedBlockEntity extends BlockEntity implements IMateriallyTexturedBlockEntity, CustomDataPacketHandlingBlockEntity, CustomUpdateTagHandlingBlockEntity, BlockEntityExtension
 {
 
     private MaterialTextureData textureData = MaterialTextureData.EMPTY;
@@ -38,7 +41,7 @@ public class MateriallyTexturedBlockEntity extends BlockEntity implements IMater
             this.textureData = MaterialTextureDataUtil.generateRandomTextureDataFrom(this.getBlockState().getBlock());
         }
 
-        this.requestModelDataUpdate();
+        this.domum$requestModelDataUpdate();
     }
 
     @Override
@@ -97,12 +100,12 @@ public class MateriallyTexturedBlockEntity extends BlockEntity implements IMater
             }
         }
 
-        this.requestModelDataUpdate();
+        this.domum$requestModelDataUpdate();
     }
 
     @NotNull
     @Override
-    public ModelData getModelData()
+    public ModelData domum$getModelData()
     {
         return ModelData.builder()
           .with(ModProperties.MATERIAL_TEXTURE_PROPERTY, this.textureData)

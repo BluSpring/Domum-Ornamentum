@@ -2,18 +2,19 @@ package com.ldtteam.domumornamentum.datagen.floatingcarpet;
 
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.block.decorative.FloatingCarpetBlock;
+import com.ldtteam.domumornamentum.mixin.DataGeneratorAccessor;
 import com.ldtteam.domumornamentum.util.Constants;
+import io.github.fabricators_of_create.porting_lib.data.ExistingFileHelper;
+import io.github.fabricators_of_create.porting_lib.models.generators.ModelFile;
+import io.github.fabricators_of_create.porting_lib.models.generators.block.BlockStateProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
 public class FloatingCarpetBlockStateProvider extends BlockStateProvider
 {
     public FloatingCarpetBlockStateProvider(DataGenerator gen, ExistingFileHelper exFileHelper) {
-        super(gen.getPackOutput(), Constants.MOD_ID, exFileHelper);
+        super(((DataGeneratorAccessor) gen).getPackOutput(), Constants.MOD_ID, exFileHelper);
     }
 
     @Override

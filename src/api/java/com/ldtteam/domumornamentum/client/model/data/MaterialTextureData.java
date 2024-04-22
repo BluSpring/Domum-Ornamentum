@@ -1,12 +1,12 @@
 package com.ldtteam.domumornamentum.client.model.data;
 
 import com.google.common.collect.Maps;
+import io.github.fabricators_of_create.porting_lib.core.util.INBTSerializable;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Map;
 import java.util.Objects;
@@ -59,7 +59,7 @@ public class MaterialTextureData implements INBTSerializable<CompoundTag>
         if (this == EMPTY)
             return nbt;
 
-        this.getTexturedComponents().forEach((key, value) -> nbt.putString(key.toString(), Objects.requireNonNull(ForgeRegistries.BLOCKS.getKey(value)).toString()));
+        this.getTexturedComponents().forEach((key, value) -> nbt.putString(key.toString(), Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(value)).toString()));
 
         return nbt;
     }
@@ -72,9 +72,9 @@ public class MaterialTextureData implements INBTSerializable<CompoundTag>
         nbt.getAllKeys().forEach(key -> {
             final ResourceLocation name = new ResourceLocation(nbt.getString(key));
 
-            if (ForgeRegistries.BLOCKS.getValue(name) != Blocks.AIR)
+            if (BuiltInRegistries.BLOCK.get(name) != Blocks.AIR)
             {
-                this.texturedComponents.put(new ResourceLocation(key), ForgeRegistries.BLOCKS.getValue(name));
+                this.texturedComponents.put(new ResourceLocation(key), BuiltInRegistries.BLOCK.get(name));
             }
         });
     }

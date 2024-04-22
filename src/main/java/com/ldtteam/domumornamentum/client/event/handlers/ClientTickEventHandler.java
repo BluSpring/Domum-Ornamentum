@@ -1,13 +1,8 @@
 package com.ldtteam.domumornamentum.client.event.handlers;
 
-import com.ldtteam.domumornamentum.util.Constants;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class ClientTickEventHandler
 {
     private static final ClientTickEventHandler INSTANCE = new ClientTickEventHandler();
@@ -22,14 +17,14 @@ public class ClientTickEventHandler
 
     private ClientTickEventHandler()
     {
+        ClientTickEvents.START_CLIENT_TICK.register(client -> onTickClientTick());
     }
 
-    @SubscribeEvent
-    public static void onTickClientTick(final TickEvent.ClientTickEvent event)
+    public static void onTickClientTick()
     {
-        if (event.phase == TickEvent.Phase.START) {
+        //if (event.phase == TickEvent.Phase.START) {
             ClientTickEventHandler.getInstance().onClientTick();
-        }
+        //}
     }
 
     private void onClientTick()

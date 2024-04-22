@@ -22,10 +22,13 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -33,9 +36,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 import static com.ldtteam.domumornamentum.util.Constants.MOD_ID;
 import static com.ldtteam.domumornamentum.util.GuiConstants.*;
 
-@OnlyIn(Dist.CLIENT)
+@Environment(EnvType.CLIENT)
 public class ArchitectsCutterCategory implements IRecipeCategory<ArchitectsCutterRecipe>
 {
     public static final RecipeType<ArchitectsCutterRecipe> TYPE
@@ -130,15 +130,15 @@ public class ArchitectsCutterCategory implements IRecipeCategory<ArchitectsCutte
                           @NotNull final ArchitectsCutterRecipe recipe,
                           @NotNull final IFocusGroup focuses)
     {
-        final Block generatedBlock = ForgeRegistries.BLOCKS.getValue(recipe.getBlockName());
+        final Block generatedBlock = BuiltInRegistries.BLOCK.get(recipe.getBlockName());
 
         if (!(generatedBlock instanceof final IMateriallyTexturedBlock materiallyTexturedBlock))
             return;
 
         final Collection<IMateriallyTexturedBlockComponent> components = materiallyTexturedBlock.getComponents();
         final List<List<ItemStack>> inputs = components.stream()
-                .map(component -> ForgeRegistries.BLOCKS.tags().getTag(component.getValidSkins()).stream()
-                        .map(ItemStack::new)
+                .map(component -> BuiltInRegistries.BLOCK.getTag(component.getValidSkins()).stream()
+                        .map((holder) -> new ItemStack(holder.unwrap().right().orElseThrow().get(0).value()))
                         .collect(Collectors.collectingAndThen(
                                 Collectors.toCollection(ArrayList::new),
                                 list ->

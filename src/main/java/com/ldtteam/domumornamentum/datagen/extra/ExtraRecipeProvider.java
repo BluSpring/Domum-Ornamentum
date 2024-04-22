@@ -21,7 +21,7 @@ public class ExtraRecipeProvider extends RecipeProvider
     }
 
     @Override
-    protected void buildRecipes(@NotNull Consumer<FinishedRecipe> writer) {
+    public void buildRecipes(@NotNull Consumer<FinishedRecipe> writer) {
         ModBlocks.getInstance().getExtraTopBlocks().forEach(extraBlock -> extraBlockRecipe(writer, extraBlock));
     }
 
