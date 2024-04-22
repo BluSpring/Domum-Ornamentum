@@ -12,10 +12,10 @@ public class DomumOrnamentumClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ModelDataManager.init();
+        MateriallyTexturedModelLoader.init();
         ClientTickEventHandler.getInstance();
         MateriallyTexturedBlockPreviewRenderHandler.init();
         ModBusEventHandler.init();
         RegisterColorHandlersEventHandler.init();
-        MateriallyTexturedModelLoader.init();
     }
 }
