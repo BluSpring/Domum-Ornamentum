@@ -17,6 +17,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -113,7 +114,14 @@ public class MateriallyTexturedBakedModel implements BakedModel {
 
     @Override
     public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
-        var renderData = MaterialTextureDataUtil.generateRandomTextureDataFrom(stack);
+        MaterialTextureData renderData = null;
+        if (stack.hasTag() && stack.getTag().contains("textureData", Tag.TAG_COMPOUND)) {
+            renderData = MaterialTextureData.deserializeFromNBT(stack.getTag().getCompound("textureData"));
+        }
+
+        if (renderData == null || renderData.isEmpty()) {
+            renderData = MaterialTextureDataUtil.generateRandomTextureDataFrom(stack);
+        }
 
         var model = getBakedInnerModelFor(stack, renderData, ((BlockItem) stack.getItem()).getBlock().defaultBlockState(), RenderType.solid());
         model.emitItemQuads(stack, randomSupplier, context);
