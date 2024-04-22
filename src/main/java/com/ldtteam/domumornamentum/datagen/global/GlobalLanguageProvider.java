@@ -182,6 +182,7 @@ public class GlobalLanguageProvider extends LanguageProvider
 
         @Override
         public void add(String key, String value) {
+            GlobalLanguageProvider.this.add(key, value);
         }
     }
 }

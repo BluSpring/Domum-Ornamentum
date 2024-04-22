@@ -1,7 +1,5 @@
 package com.ldtteam.domumornamentum.fabric.rendering;
 
-import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
-import com.ldtteam.domumornamentum.fabric.model.ModelData;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -21,7 +19,7 @@ public final class RenderTypeHelper
 {
     /**
      * Provides a {@link RenderType} using {@link DefaultVertexFormat#NEW_ENTITY} for the given {@link DefaultVertexFormat#BLOCK} format.
-     * This should be called for each {@link RenderType} returned by {@link BakedModelExtension#getRenderTypes(BlockState, RandomSource, ModelData)}.
+     * This should be called for each {@link RenderType} returned by {@link BakedModel#getRenderTypes(BlockState, RandomSource, ModelData)}.
      * <p>
      * Mimics the behavior of vanilla's {@link ItemBlockRenderTypes#getRenderType(BlockState, boolean)}.
      */
@@ -35,7 +33,7 @@ public final class RenderTypeHelper
 
     /**
      * Provides a {@link RenderType} fit for rendering moving blocks given the specified chunk render type.
-     * This should be called for each {@link RenderType} returned by {@link BakedModelExtension#getRenderTypes(BlockState, RandomSource, ModelData)}.
+     * This should be called for each {@link RenderType} returned by {@link BakedModel#getRenderTypes(BlockState, RandomSource, ModelData)}.
      * <p>
      * Mimics the behavior of vanilla's {@link ItemBlockRenderTypes#getMovingBlockRenderType(BlockState)}.
      */
@@ -58,9 +56,10 @@ public final class RenderTypeHelper
     {
         if (stack.getItem() instanceof BlockItem blockItem)
         {
-            var renderTypes = ((BakedModelExtension) model).getRenderTypes(blockItem.getBlock().defaultBlockState(), RandomSource.create(42), ModelData.EMPTY);
+            // TODO: find a replacement
+            /*var renderTypes = model.getRenderTypes(blockItem.getBlock().defaultBlockState(), RandomSource.create(42), ModelData.EMPTY);
             if (renderTypes.contains(RenderType.translucent()))
-                return getEntityRenderType(RenderType.translucent(), cull);
+                return getEntityRenderType(RenderType.translucent(), cull);*/
             return Sheets.cutoutBlockSheet();
         }
         return cull ? Sheets.translucentCullBlockSheet() : Sheets.translucentItemSheet();

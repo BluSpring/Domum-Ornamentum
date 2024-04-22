@@ -2,12 +2,10 @@ package com.ldtteam.domumornamentum.client.model.baked;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
-import com.ldtteam.domumornamentum.client.model.properties.ModProperties;
-import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
-import com.ldtteam.domumornamentum.fabric.model.ModelData;
 import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
+import com.ldtteam.domumornamentum.util.MaterialTextureDataUtil;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
@@ -16,27 +14,26 @@ import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.ldtteam.domumornamentum.util.MaterialTextureDataUtil.generateRandomTextureDataFrom;
 
 @SuppressWarnings("resource")
-public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExtension {
+public class MateriallyTexturedBakedModel implements BakedModel {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final RandomSource RANDOM = RandomSource.create();
     private static final ChunkRenderTypeSet SOLID_ONLY = ChunkRenderTypeSet.of(RenderType.solid());
@@ -64,12 +61,17 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
     }
 
     @Override
+    public boolean isVanillaAdapter() {
+        return false;
+    }
+
+    @Override
     public @NotNull List<BakedQuad> getQuads(
             @Nullable final BlockState state, @Nullable final Direction side, final @NotNull RandomSource rand) {
         return innerModel.getQuads(state, side, rand);
     }
 
-    @Override
+    /*@Override
     public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, @NotNull ModelData data) {
         if (!data.has(ModProperties.MATERIAL_TEXTURE_PROPERTY)) {
             return ChunkRenderTypeSet.none();
@@ -83,18 +85,35 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
         return ChunkRenderTypeSet.union(
                 Stream.concat(
                         textureData.getTexturedComponents().values().stream()
-                                .map(block -> ((BakedModelExtension) Minecraft.getInstance().getBlockRenderer().getBlockModel(block.defaultBlockState()))
+                                .map(block -> (Minecraft.getInstance().getBlockRenderer().getBlockModel(block.defaultBlockState()))
                                         .getRenderTypes(block.defaultBlockState(), rand, ModelData.EMPTY)),
                         Stream.of(SOLID_ONLY))
                 .toArray(ChunkRenderTypeSet[]::new)
         );
-    }
+    }*/
 
-    @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {
+    /*@Override
+    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull RenderMaterial data, @Nullable RenderType renderType) {
 
         final BakedModel remappedModel = getBakedInnerModelFor(data, state, renderType == null ? RenderType.solid() : renderType);
         return ((BakedModelExtension) remappedModel).getQuads(state, side, rand, data, renderType);
+    }*/
+
+    @Override
+    public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+        if (!(blockView.getBlockEntityRenderData(pos) instanceof MaterialTextureData data))
+            return;
+
+        var model = getBakedInnerModelFor(data, state, RenderType.solid());
+        model.emitBlockQuads(blockView, state, pos, randomSupplier, context);
+    }
+
+    @Override
+    public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
+        var renderData = MaterialTextureDataUtil.generateRandomTextureDataFrom(stack);
+
+        var model = getBakedInnerModelFor(stack, renderData, ((BlockItem) stack.getItem()).getBlock().defaultBlockState(), RenderType.solid());
+        model.emitItemQuads(stack, randomSupplier, context);
     }
 
     @Override
@@ -122,8 +141,7 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
         return innerModel.getParticleIcon();
     }
 
-    @Override
-    public @NotNull TextureAtlasSprite getParticleIcon(@NotNull final ModelData modelData) {
+    /*public @NotNull TextureAtlasSprite getParticleIcon(@NotNull final RenderMaterial modelData) {
         if (!modelData.has(ModProperties.MATERIAL_TEXTURE_PROPERTY)) {
             return getParticleIcon();
         }
@@ -136,9 +154,9 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
         if (!textureData.getTexturedComponents().containsKey(particleTextureName))
             return getParticleIcon();
 
-        return ((BakedModelExtension) Minecraft.getInstance().getBlockRenderer().getBlockModel(textureData.getTexturedComponents().get(particleTextureName).defaultBlockState()))
-                .getParticleIcon(modelData);
-    }
+        return (Minecraft.getInstance().getBlockRenderer().getBlockModel(textureData.getTexturedComponents().get(particleTextureName).defaultBlockState()))
+                .getParticleIcon();
+    }*/
 
     @Override
     public @NotNull ItemTransforms getTransforms() {
@@ -150,7 +168,7 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
         return ItemOverrides.EMPTY;
     }
 
-    @Override
+    /*@Override
     public @NotNull List<RenderType> getRenderTypes(ItemStack itemStack, boolean fabulous) {
         if (!(itemStack.getItem() instanceof BlockItem blockItem)) {
             return Collections.emptyList();
@@ -162,18 +180,18 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
         }
 
         return Lists.newArrayList(getRenderTypes(blockItem, textureData));
-    }
+    }*/
 
-    private Collection<RenderType> getRenderTypes(BlockItem blockItem, MaterialTextureData textureData) {
+    /*private Collection<RenderType> getRenderTypes(BlockItem blockItem, MaterialTextureData textureData) {
         final List<RenderType> renderTypes = getRenderTypes(blockItem.getBlock().defaultBlockState(), RANDOM, ModelData.builder().with(ModProperties.MATERIAL_TEXTURE_PROPERTY, textureData).build()).asList();
 
         final Set<RenderType> renderTypesWithAdditionalComponents = new HashSet<>(renderTypes);
         renderTypesWithAdditionalComponents.add(RenderType.solid());
 
         return renderTypesWithAdditionalComponents;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public @NotNull List<BakedModel> getRenderPasses(ItemStack itemStack, boolean fabulous) {
         if (!(itemStack.getItem() instanceof BlockItem blockItem)) {
             return Collections.emptyList();
@@ -199,15 +217,15 @@ public class MateriallyTexturedBakedModel implements BakedModel, BakedModelExten
                         getBakedInnerModelFor(itemStack, finalTextureData, blockItem.getBlock().defaultBlockState(), type)
                 )).forEach(models::add);
         return models;
-    }
+    }*/
 
-    private BakedModel getBakedInnerModelFor(final ModelData modelData, final BlockState sourceState, final RenderType renderType) {
+    /*private BakedModel getBakedInnerModelFor(final ModelData modelData, final BlockState sourceState, final RenderType renderType) {
         if (!modelData.has(ModProperties.MATERIAL_TEXTURE_PROPERTY)) {
             return getBakedInnerModelFor(MaterialTextureData.EMPTY, sourceState, renderType);
         }
 
         return getBakedInnerModelFor(modelData.get(ModProperties.MATERIAL_TEXTURE_PROPERTY), sourceState, renderType);
-    }
+    }*/
 
     private BakedModel getBakedInnerModelFor(final MaterialTextureData modelData, final BlockState sourceState, final RenderType renderType) {
         try {

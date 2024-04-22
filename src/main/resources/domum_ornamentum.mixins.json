@@ -3,13 +3,12 @@
     "package": "com.ldtteam.domumornamentum.mixin",
     "compatibilityLevel": "JAVA_17",
     "client": [
-        "BakedModelMixin",
-        "ClientLevelMixin",
         "RenderTypeMixin"
     ],
     "mixins": [
-        "BlockEntityMixin",
+        "BlockLootTableSubProviderMixin",
         "DataGeneratorAccessor",
+        "ExistingFileHelperMixin",
         "ItemBlockRenderTypesAccessor",
         "ItemRendererAccessor",
         "MinecraftAccessor"

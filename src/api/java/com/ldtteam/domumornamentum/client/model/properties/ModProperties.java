@@ -1,8 +1,5 @@
 package com.ldtteam.domumornamentum.client.model.properties;
 
-import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
-import com.ldtteam.domumornamentum.fabric.model.ModelProperty;
-
 public class ModProperties
 {
 
@@ -11,5 +8,5 @@ public class ModProperties
         throw new IllegalStateException("Can not instantiate an instance of: ModProperties. This is a utility class");
     }
 
-    public static ModelProperty<MaterialTextureData> MATERIAL_TEXTURE_PROPERTY = new ModelProperty<>();
+    //public static ModelProperty<MaterialTextureData> MATERIAL_TEXTURE_PROPERTY = new ModelProperty<>();
 }

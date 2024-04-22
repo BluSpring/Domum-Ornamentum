@@ -1,10 +1,11 @@
 package com.ldtteam.domumornamentum.client.model.utils;
 
 import com.ldtteam.domumornamentum.fabric.rendering.IQuadTransformer;
-import com.ldtteam.domumornamentum.fabric.rendering.QuadTransformers;
 import com.ldtteam.domumornamentum.mixin.MinecraftAccessor;
 import com.ldtteam.domumornamentum.util.SingleBlockLevelReader;
+import io.github.fabricators_of_create.porting_lib.models.QuadTransformers;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.core.BlockPos;
@@ -73,7 +74,11 @@ public class ModelSpriteQuadTransformer implements IQuadTransformer
         }
 
         if (color != -1) {
-            QuadTransformers.applyingColor(color).processInPlace(quad);
+            var renderer = RendererAccess.INSTANCE.getRenderer();
+            var quadEmitter = renderer.meshBuilder().getEmitter().fromVanilla(quad, renderer.materialFinder().find(), null);
+            QuadTransformers.applyingColor(color)
+                .transform(quadEmitter);
+            quadEmitter.emit();
         }
 
         if (tint != -1) {

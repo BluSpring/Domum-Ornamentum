@@ -11,12 +11,28 @@ sourceSets {
         java.srcDir("src/main/java")
         java.srcDir("src/api/java")
 
-        resources.srcDir("src/datagen/generated/domum_ornamentum")
+        //resources.srcDir("src/datagen/generated/domum_ornamentum")
+        resources.srcDir("src/main/generated")
     }
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/domum_ornamentum.accesswidener")
+}
+
+loom {
+    runs {
+        // This adds a new gradle task that runs the datagen API: "gradlew runDatagen"
+        datagen {
+            inherit client
+            name "Data Generation"
+            vmArg "-Dfabric-api.datagen"
+            vmArg "-Dfabric-api.datagen.output-dir=${file("src/main/generated")}"
+            vmArg "-Dfabric-api.datagen.modid=${project.modId}"
+
+            runDir "build/datagen"
+        }
+    }
 }
 
 repositories {

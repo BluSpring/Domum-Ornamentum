@@ -2,9 +2,6 @@ package com.ldtteam.domumornamentum.entity.block;
 
 import com.ldtteam.domumornamentum.block.IMateriallyTexturedBlock;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
-import com.ldtteam.domumornamentum.client.model.properties.ModProperties;
-import com.ldtteam.domumornamentum.fabric.BlockEntityExtension;
-import com.ldtteam.domumornamentum.fabric.model.ModelData;
 import com.ldtteam.domumornamentum.util.MaterialTextureDataUtil;
 import io.github.fabricators_of_create.porting_lib.block.CustomDataPacketHandlingBlockEntity;
 import io.github.fabricators_of_create.porting_lib.block.CustomUpdateTagHandlingBlockEntity;
@@ -18,12 +15,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static com.ldtteam.domumornamentum.entity.block.ModBlockEntityTypes.MATERIALLY_TEXTURED;
 
-public class MateriallyTexturedBlockEntity extends BlockEntity implements IMateriallyTexturedBlockEntity, CustomDataPacketHandlingBlockEntity, CustomUpdateTagHandlingBlockEntity, BlockEntityExtension
+public class MateriallyTexturedBlockEntity extends BlockEntity implements IMateriallyTexturedBlockEntity, CustomDataPacketHandlingBlockEntity, CustomUpdateTagHandlingBlockEntity
 {
 
     private MaterialTextureData textureData = MaterialTextureData.EMPTY;
@@ -40,8 +38,6 @@ public class MateriallyTexturedBlockEntity extends BlockEntity implements IMater
         if (this.textureData.isEmpty()) {
             this.textureData = MaterialTextureDataUtil.generateRandomTextureDataFrom(this.getBlockState().getBlock());
         }
-
-        this.domum$requestModelDataUpdate();
     }
 
     @Override
@@ -99,17 +95,20 @@ public class MateriallyTexturedBlockEntity extends BlockEntity implements IMater
                 this.textureData = new MaterialTextureData(textureMap);
             }
         }
-
-        this.domum$requestModelDataUpdate();
     }
 
-    @NotNull
+    /*@NotNull
     @Override
-    public ModelData domum$getModelData()
+    public ModelData getModelData()
     {
         return ModelData.builder()
           .with(ModProperties.MATERIAL_TEXTURE_PROPERTY, this.textureData)
           .build();
+    }*/
+
+    @Override
+    public @Nullable Object getRenderData() {
+        return this.textureData;
     }
 
     @Override

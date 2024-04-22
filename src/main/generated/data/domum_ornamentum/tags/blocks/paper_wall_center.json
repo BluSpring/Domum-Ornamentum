@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:planks",
+    "#c:stone",
+    "#domum_ornamentum:default"
+  ]
+}

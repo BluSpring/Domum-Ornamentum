@@ -2,7 +2,7 @@ package com.ldtteam.domumornamentum.client.event.handlers;
 
 import com.ldtteam.domumornamentum.client.render.ModelGhostRenderer;
 import com.ldtteam.domumornamentum.util.ItemStackUtils;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -14,12 +14,12 @@ import net.minecraft.world.phys.Vec3;
 public class MateriallyTexturedBlockPreviewRenderHandler {
     public static void init() {
         WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register((context, hitResult) -> {
-            renderMateriallyTexturedBlockPreview(context.matrixStack());
+            renderMateriallyTexturedBlockPreview(context);
             return true;
         });
     }
 
-    public static void renderMateriallyTexturedBlockPreview(final PoseStack poseStack) {
+    public static void renderMateriallyTexturedBlockPreview(final WorldRenderContext context) {
         final HitResult rayTraceResult = Minecraft.getInstance().hitResult;
         if (!(rayTraceResult instanceof final BlockHitResult blockRayTraceResult) || blockRayTraceResult.getType() == HitResult.Type.MISS)
             return;
@@ -33,15 +33,15 @@ public class MateriallyTexturedBlockPreviewRenderHandler {
             return;
 
         Vec3 targetedRenderPos = Vec3.atLowerCornerOf(blockRayTraceResult.getBlockPos().offset(blockRayTraceResult.getDirection().getNormal()));
-        renderGhost(poseStack, heldStack, targetedRenderPos, blockRayTraceResult);
+        renderGhost(context, heldStack, targetedRenderPos, blockRayTraceResult);
     }
 
     private static void renderGhost(
-            final PoseStack poseStack,
+            final WorldRenderContext context,
             final ItemStack heldStack,
             final Vec3 targetedRenderPos, BlockHitResult blockRayTraceResult) {
         ModelGhostRenderer.getInstance().renderGhost(
-                poseStack,
+                context,
                 heldStack,
                 targetedRenderPos,
                 blockRayTraceResult,

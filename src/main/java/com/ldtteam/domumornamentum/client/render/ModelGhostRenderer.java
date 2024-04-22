@@ -1,8 +1,6 @@
 package com.ldtteam.domumornamentum.client.render;
 
-import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
-import com.ldtteam.domumornamentum.fabric.model.ModelData;
-import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
+import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.mixin.ItemRendererAccessor;
 import com.ldtteam.domumornamentum.util.ItemStackUtils;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -10,6 +8,7 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -56,11 +55,12 @@ public class ModelGhostRenderer {
     }
 
     public void renderGhost(
-            final PoseStack poseStack,
+            final WorldRenderContext renderContext,
             final ItemStack renderStack,
             final Vec3 targetedRenderPos,
             final BlockHitResult blockHitResult,
             final boolean ignoreDepth) {
+        var poseStack = renderContext.matrixStack();
         poseStack.pushPose();
 
         // Offset/scale by an unnoticeable amount to prevent z-fighting
@@ -77,7 +77,7 @@ public class ModelGhostRenderer {
         BUFFER.setAlphaPercentage(color.w());
 
         final List<ModelToRender> models;
-        ModelData modelData = null;
+        MaterialTextureData modelData = null;
         final BlockState placementState;
         final boolean renderItemMode;
         if (renderStack.getItem() instanceof BlockItem blockItem) {
@@ -109,38 +109,40 @@ public class ModelGhostRenderer {
                         blockEntity.setChanged();
                     }
 
-                    modelData = ModelData.EMPTY;
-                    modelData = ((BakedModelExtension) model).getModelData(Minecraft.getInstance().level, context.getClickedPos(), placementState, modelData);
+                    modelData = (MaterialTextureData) blockEntity.getRenderData();
+                    //modelData = ((BakedModelExtension) model).getModelData(Minecraft.getInstance().level, context.getClickedPos(), placementState, modelData);
                 }
             }
 
-            if (modelData == null) {
+            /*if (modelData == null) {
                 modelData = ModelData.EMPTY;
-            }
+            }*/
 
             final RandomSource randomSource = RandomSource.create();
             randomSource.setSeed(42L);
-            final ChunkRenderTypeSet renderTypeSet = ((BakedModelExtension) model).getRenderTypes(placementState, randomSource, modelData);
+            /*final ChunkRenderTypeSet renderTypeSet = ((BakedModelExtension) model).getRenderTypes(placementState, randomSource, modelData);
             models = renderTypeSet.asList().stream()
                     .map(renderType -> new ModelToRender(model, renderType))
-                    .toList();
+                    .toList();*/
+            models = List.of(new ModelToRender(model, RenderType.solid()));
             renderItemMode = false;
         } else {
             placementState = null;
             final BakedModel model = Minecraft.getInstance().getItemRenderer().getModel(renderStack, null, null, 0);
-            final List<BakedModel> renderPasses = ((BakedModelExtension) model).getRenderPasses(renderStack, true);
+            /*final List<BakedModel> renderPasses = ((BakedModelExtension) model).getRenderPasses(renderStack, true);
             //TODO; Figure this out.
             modelData = ModelData.EMPTY;
             models = renderPasses.stream()
                     .flatMap(pass -> ((BakedModelExtension) pass).getRenderTypes(renderStack, true).stream().map(type -> new ModelToRender(pass, type)))
-                    .toList();
+                    .toList();*/
+            models = List.of(new ModelToRender(model, RenderType.solid()));
             renderItemMode = true;
         }
 
         renderGhost(
                 placementState,
                 blockHitResult.getBlockPos(),
-                poseStack,
+                renderContext,
                 models,
                 modelData,
                 color,
@@ -154,9 +156,9 @@ public class ModelGhostRenderer {
     private void renderGhost(
             final BlockState state,
             final BlockPos pos,
-            final PoseStack poseStack,
+            final WorldRenderContext renderContext,
             final List<ModelToRender> models,
-            final ModelData modelData,
+            final MaterialTextureData modelData,
             final Vector4f color,
             final boolean renderColoredGhost,
             final boolean renderItemMode) {
@@ -177,7 +179,7 @@ public class ModelGhostRenderer {
                         state,
                         model,
                         modelData,
-                        poseStack,
+                        renderContext,
                         color
                 );
             }
@@ -190,7 +192,7 @@ public class ModelGhostRenderer {
                         modelData,
                         state,
                         pos,
-                        poseStack,
+                        renderContext,
                         renderItemMode
                 );
             }
@@ -227,29 +229,33 @@ public class ModelGhostRenderer {
 
     private static void renderFullModelLists(
             ModelToRender pModel,
-            ModelData modelData,
+            MaterialTextureData modelData,
             BlockState state,
             BlockPos pos,
-            PoseStack pPoseStack,
+            WorldRenderContext renderContext,
             boolean renderItemMode) {
         RandomSource randomsource = RandomSource.create();
 
         for(Direction direction : Direction.values()) {
             randomsource.setSeed(42L);
-            if (renderItemMode)
-                ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, direction, randomsource/*, modelData, pModel.renderType()*/), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
-            else
-                renderBlockTintedQuadList(pPoseStack, ((BakedModelExtension) pModel.model()).getQuads(state, direction, randomsource, modelData, pModel.renderType()), state, pos);
+            if (renderItemMode) {
+                //((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, ((BakedModelExtension) pModel.model()).getQuads(state, direction, randomsource, modelData, pModel.renderType()), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
+                ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(renderContext.matrixStack(), ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, direction, randomsource), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
+            } else {
+                renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, direction, randomsource), state, pos);
+            }
         }
 
         randomsource.setSeed(42L);
-        if (renderItemMode)
-            ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, null, randomsource/*, modelData, pModel.renderType()*/), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
-        else
-            renderBlockTintedQuadList(pPoseStack, ((BakedModelExtension) pModel.model()).getQuads(state, null, randomsource, modelData, pModel.renderType()), state, pos);
+        if (renderItemMode) {
+            ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(renderContext.matrixStack(), ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, null, randomsource), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
+        } else {
+            renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, null, randomsource), state, pos);
+        }
     }
 
-    private static void renderBlockTintedQuadList(PoseStack pPoseStack, List<BakedQuad> pQuads, BlockState placementState, BlockPos pos) {
+    private static void renderBlockTintedQuadList(WorldRenderContext renderContext, List<BakedQuad> pQuads, BlockState placementState, BlockPos pos) {
+        var pPoseStack = renderContext.matrixStack();
         PoseStack.Pose posestack$pose = pPoseStack.last();
 
         for(BakedQuad bakedquad : pQuads) {
@@ -272,9 +278,10 @@ public class ModelGhostRenderer {
     private static void renderColoredModelLists(
             final BlockState state,
             final ModelToRender model,
-            final ModelData modelData,
-            final PoseStack poseStack,
+            final MaterialTextureData modelData,
+            final WorldRenderContext renderContext,
             final Vector4f color) {
+        var poseStack = renderContext.matrixStack();
         final RandomSource random = RandomSource.create(42);
 
         // Setup normals and shaded colors for each direction
@@ -287,12 +294,12 @@ public class ModelGhostRenderer {
         for (final Direction direction : Direction.values()) {
             // Render outer directional quads
             random.setSeed(42L);
-            renderColoredQuadList(poseStack.last().pose(), ((BakedModelExtension) model.model()).getQuads(state, direction, random, modelData, model.renderType()), normals, shadedColors, pos);
+            renderColoredQuadList(poseStack.last().pose(), model.model().getQuads(state, direction, random), normals, shadedColors, pos);
         }
 
         // Render quads of unspecified direction
         random.setSeed(42L);
-        renderColoredQuadList(poseStack.last().pose(), ((BakedModelExtension) model.model()).getQuads(state, null, random, modelData, model.renderType()), normals, shadedColors, pos);
+        renderColoredQuadList(poseStack.last().pose(), model.model().getQuads(state, null, random), normals, shadedColors, pos);
     }
 
     /**

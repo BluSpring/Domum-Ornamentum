@@ -1,10 +1,6 @@
 package com.ldtteam.domumornamentum.client.model.baked;
 
-import com.google.common.collect.ImmutableList;
-import com.ldtteam.domumornamentum.fabric.model.BakedModelExtension;
-import com.ldtteam.domumornamentum.fabric.model.ModelData;
-import com.ldtteam.domumornamentum.fabric.rendering.ChunkRenderTypeSet;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -14,17 +10,15 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedModelExtension {
+public class SpecificRenderTypeBakedModelWrapper implements BakedModel {
 
     private final RenderType renderType;
     private final BakedModel innerModel;
@@ -39,21 +33,21 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedMod
         return innerModel.getTransforms();
     }
 
-    @Override
+    /*@Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull ModelData data, @Nullable RenderType renderType) {
         if (renderType != this.renderType) {
             return Collections.emptyList();
         }
 
         return ((BakedModelExtension) innerModel).getQuads(state, side, rand, data, renderType);
-    }
+    }*/
 
     @Override
     public List<BakedQuad> getQuads(@Nullable BlockState p_235039_, @Nullable Direction p_235040_, RandomSource p_235041_) {
         return innerModel.getQuads(p_235039_, p_235040_, p_235041_);
     }
 
-    @Override
+    /*@Override
     public boolean useAmbientOcclusion(BlockState state) {
         return ((BakedModelExtension) innerModel).useAmbientOcclusion(state);
     }
@@ -61,6 +55,21 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedMod
     @Override
     public boolean useAmbientOcclusion(BlockState state, RenderType renderType) {
         return ((BakedModelExtension) innerModel).useAmbientOcclusion(state, renderType);
+    }*/
+
+    @Override
+    public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+        innerModel.emitBlockQuads(blockView, state, pos, randomSupplier, context);
+    }
+
+    @Override
+    public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
+        innerModel.emitItemQuads(stack, randomSupplier, context);
+    }
+
+    @Override
+    public boolean isVanillaAdapter() {
+        return innerModel.isVanillaAdapter();
     }
 
     @Override
@@ -93,6 +102,7 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedMod
         return innerModel.getOverrides();
     }
 
+    /*
     @Override
     public BakedModel applyTransform(final ItemDisplayContext transformType, final PoseStack poseStack, final boolean applyLeftHandTransform)
     {
@@ -117,5 +127,5 @@ public class SpecificRenderTypeBakedModelWrapper implements BakedModel, BakedMod
     @Override
     public List<RenderType> getRenderTypes(ItemStack itemStack, boolean fabulous) {
         return ImmutableList.of(this.renderType);
-    }
+    }*/
 }

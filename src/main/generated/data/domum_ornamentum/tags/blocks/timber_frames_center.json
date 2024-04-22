@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bricks",
+    "minecraft:deepslate",
+    "minecraft:deepslate_bricks",
+    "minecraft:cobbled_deepslate",
+    "minecraft:polished_deepslate",
+    "minecraft:polished_blackstone",
+    "#domum_ornamentum:default",
+    "#minecraft:planks",
+    "#c:cobblestone",
+    "#c:stone",
+    "#c:end_stones",
+    "#c:netherrack",
+    "#c:obsidian",
+    "#c:sandstone",
+    "#minecraft:dirt"
+  ]
+}

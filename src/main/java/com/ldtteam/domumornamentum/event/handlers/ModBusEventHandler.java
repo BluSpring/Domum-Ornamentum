@@ -56,9 +56,11 @@ import com.ldtteam.domumornamentum.datagen.wall.paper.PaperwallComponentTagProvi
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallBlockStateProvider;
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallCompatibilityTagProvider;
 import com.ldtteam.domumornamentum.datagen.wall.vanilla.WallComponentTagProvider;
+import com.ldtteam.domumornamentum.util.Constants;
 import io.github.fabricators_of_create.porting_lib.data.ExistingFileHelper;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ModBusEventHandler
@@ -75,7 +77,13 @@ public class ModBusEventHandler
     public static void dataGeneratorSetup(final FabricDataGenerator generator)
     {
         var pack = generator.createPack();
-        var existingFileHelper = ExistingFileHelper.withResourcesFromArg();
+        ExistingFileHelper existingFileHelper = ExistingFileHelper.withResources(Set.of(Constants.MOD_ID));
+
+        //Global
+        pack.addProvider((output, future) -> new GlobalRecipeProvider(output));
+        pack.addProvider((output, future) -> new GlobalLanguageProvider(output));
+        pack.addProvider((output, future) -> new GlobalLootTableProvider(output));
+        pack.addProvider((output, future) -> new MateriallyTexturedBlockRecipeProvider(output));
         
         //Extra blocks
         pack.addProvider((output, future) -> new ExtraBlockStateProvider(generator, existingFileHelper));
@@ -186,11 +194,5 @@ public class ModBusEventHandler
         pack.addProvider((output, future) -> new AllBrickStairBlockStateProvider(generator, existingFileHelper));
 
         pack.addProvider((output, future) -> new AllBrickBlockTagProvider(output, future, existingFileHelper));
-
-        //Global
-        pack.addProvider((output, future) -> new GlobalRecipeProvider(output));
-        pack.addProvider((output, future) -> new GlobalLanguageProvider(output));
-        pack.addProvider((output, future) -> new GlobalLootTableProvider(output));
-        pack.addProvider((output, future) -> new MateriallyTexturedBlockRecipeProvider(output));
     }
 }

@@ -1,13 +1,16 @@
 package com.ldtteam.domumornamentum.datagen.global;
 
+import com.google.common.collect.ImmutableList;
 import com.ldtteam.domumornamentum.block.ModBlocks;
 import com.ldtteam.domumornamentum.block.decorative.BrickBlock;
 import com.ldtteam.domumornamentum.block.decorative.ExtraBlock;
 import com.ldtteam.domumornamentum.block.decorative.FloatingCarpetBlock;
+import com.ldtteam.domumornamentum.fabric.BlockLootTableSubProviderExtension;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +27,7 @@ public class GlobalLootTableProvider extends LootTableProvider
         super(packOutput, Set.of(), List.of(new SubProviderEntry(GlobalLootTableEntries::new, LootContextParamSets.BLOCK)));
     }
 
-    private static final class GlobalLootTableEntries extends BlockLootSubProvider {
+    private static final class GlobalLootTableEntries extends BlockLootSubProvider implements BlockLootTableSubProviderExtension {
 
         private GlobalLootTableEntries() {
             super(Set.of(), FeatureFlags.REGISTRY.allFlags());
@@ -52,8 +55,8 @@ public class GlobalLootTableProvider extends LootTableProvider
             dropSelf(ModBlocks.getInstance().getArchitectsCutter());
         }
 
-        /*@Override
-        protected @NotNull Iterable<Block> getKnownBlocks() {
+        @Override
+        public @NotNull Iterable<Block> getKnownBlocks() {
             return ImmutableList.<Block>builder()
                     .addAll(ModBlocks.getInstance().getBricks())
                     .addAll(ModBlocks.getInstance().getExtraTopBlocks())
@@ -61,7 +64,7 @@ public class GlobalLootTableProvider extends LootTableProvider
                     .add(ModBlocks.getInstance().getStandingBarrel())
                     .add(ModBlocks.getInstance().getLayingBarrel())
                     .add(ModBlocks.getInstance().getArchitectsCutter()).build();
-        }*/
+        }
     }
 
     @Override
