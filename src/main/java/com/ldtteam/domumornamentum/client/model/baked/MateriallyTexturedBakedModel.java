@@ -92,12 +92,15 @@ public class MateriallyTexturedBakedModel implements BakedModel {
         );
     }*/
 
-    /*@Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull RenderMaterial data, @Nullable RenderType renderType) {
+    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, @NotNull MaterialTextureData data, @Nullable RenderType renderType) {
 
         final BakedModel remappedModel = getBakedInnerModelFor(data, state, renderType == null ? RenderType.solid() : renderType);
-        return ((BakedModelExtension) remappedModel).getQuads(state, side, rand, data, renderType);
-    }*/
+
+        if (remappedModel instanceof MateriallyTexturedBakedModel texturedBakedModel)
+            return texturedBakedModel.getQuads(state, side, rand, data, renderType == null ? RenderType.solid() : renderType);
+
+        return remappedModel.getQuads(state, side, rand);
+    }
 
     @Override
     public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {

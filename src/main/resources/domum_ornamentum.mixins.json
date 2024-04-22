@@ -11,7 +11,8 @@
         "ExistingFileHelperMixin",
         "ItemBlockRenderTypesAccessor",
         "ItemRendererAccessor",
-        "MinecraftAccessor"
+        "MinecraftAccessor",
+        "MultiPartBakedModelAccessor"
     ],
     "minVersion": "0.8"
 }

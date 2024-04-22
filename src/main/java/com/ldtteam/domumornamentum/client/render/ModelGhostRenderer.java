@@ -1,8 +1,12 @@
 package com.ldtteam.domumornamentum.client.render;
 
+import com.google.common.collect.Lists;
+import com.ldtteam.domumornamentum.client.model.baked.MateriallyTexturedBakedModel;
 import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.mixin.ItemRendererAccessor;
+import com.ldtteam.domumornamentum.mixin.MultiPartBakedModelAccessor;
 import com.ldtteam.domumornamentum.util.ItemStackUtils;
+import com.ldtteam.domumornamentum.util.MaterialTextureDataUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -14,6 +18,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.MultiPartBakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -28,6 +33,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -38,8 +44,10 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public class ModelGhostRenderer {
 
@@ -110,6 +118,11 @@ public class ModelGhostRenderer {
                     }
 
                     modelData = (MaterialTextureData) blockEntity.getRenderData();
+
+                    if (modelData == null || modelData.isEmpty()) {
+                        modelData = MaterialTextureDataUtil.generateRandomTextureDataFrom(blockItem.getBlock());
+                    }
+
                     //modelData = ((BakedModelExtension) model).getModelData(Minecraft.getInstance().level, context.getClickedPos(), placementState, modelData);
                 }
             }
@@ -242,7 +255,12 @@ public class ModelGhostRenderer {
                 //((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(pPoseStack, ModelGhostRenderer.BUFFER, ((BakedModelExtension) pModel.model()).getQuads(state, direction, randomsource, modelData, pModel.renderType()), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
                 ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(renderContext.matrixStack(), ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, direction, randomsource), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
             } else {
-                renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, direction, randomsource), state, pos);
+                if (pModel.model() instanceof MateriallyTexturedBakedModel texturedBakedModel)
+                    renderBlockTintedQuadList(renderContext, texturedBakedModel.getQuads(state, direction, randomsource, modelData, pModel.renderType()), modelData, state, pos);
+                else if (pModel.model() instanceof MultiPartBakedModel multiPart)
+                    renderMultiPartModel(multiPart, renderContext, state, pos, randomsource, direction, modelData, pModel.renderType());
+                else
+                    renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, direction, randomsource), modelData, state, pos);
             }
         }
 
@@ -250,11 +268,48 @@ public class ModelGhostRenderer {
         if (renderItemMode) {
             ((ItemRendererAccessor) Minecraft.getInstance().getItemRenderer()).callRenderQuadList(renderContext.matrixStack(), ModelGhostRenderer.BUFFER, pModel.model().getQuads(state, null, randomsource), new ItemStack(state.getBlock()), 15728880, OverlayTexture.NO_OVERLAY);
         } else {
-            renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, null, randomsource), state, pos);
+            if (pModel.model() instanceof MateriallyTexturedBakedModel texturedBakedModel)
+                renderBlockTintedQuadList(renderContext, texturedBakedModel.getQuads(state, null, randomsource, modelData, pModel.renderType()), modelData, state, pos);
+            else if (pModel.model() instanceof MultiPartBakedModel multiPart)
+                renderMultiPartModel(multiPart, renderContext, state, pos, randomsource, null, modelData, pModel.renderType());
+            else
+                renderBlockTintedQuadList(renderContext, pModel.model().getQuads(state, null, randomsource), modelData, state, pos);
         }
     }
 
-    private static void renderBlockTintedQuadList(WorldRenderContext renderContext, List<BakedQuad> pQuads, BlockState placementState, BlockPos pos) {
+    private static void renderMultiPartModel(MultiPartBakedModel model, WorldRenderContext renderContext, BlockState state, BlockPos pos, RandomSource random, Direction direction, MaterialTextureData modelData, RenderType renderType) {
+        var accessor =  ((MultiPartBakedModelAccessor) model);
+        BitSet bitSet = accessor.getSelectorCache().get(state);
+        if (bitSet == null) {
+            bitSet = new BitSet();
+
+            for(int i = 0; i < accessor.getSelectors().size(); ++i) {
+                Pair<Predicate<BlockState>, BakedModel> pair = accessor.getSelectors().get(i);
+                if ((pair.getLeft()).test(state)) {
+                    bitSet.set(i);
+                }
+            }
+
+            accessor.getSelectorCache().put(state, bitSet);
+        }
+
+        List<BakedModel> list = Lists.newArrayList();
+
+        for(int j = 0; j < bitSet.length(); ++j) {
+            if (bitSet.get(j)) {
+                list.add((accessor.getSelectors().get(j)).getRight());
+            }
+        }
+
+        for (BakedModel bakedModel : list) {
+            if (bakedModel instanceof MateriallyTexturedBakedModel texturedBakedModel)
+                renderBlockTintedQuadList(renderContext, texturedBakedModel.getQuads(state, direction, random, modelData, renderType), modelData, state, pos);
+            else
+                renderBlockTintedQuadList(renderContext, bakedModel.getQuads(state, direction, random), modelData, state, pos);
+        }
+    }
+
+    private static void renderBlockTintedQuadList(WorldRenderContext renderContext, List<BakedQuad> pQuads, MaterialTextureData modelData, BlockState placementState, BlockPos pos) {
         var pPoseStack = renderContext.matrixStack();
         PoseStack.Pose posestack$pose = pPoseStack.last();
 
