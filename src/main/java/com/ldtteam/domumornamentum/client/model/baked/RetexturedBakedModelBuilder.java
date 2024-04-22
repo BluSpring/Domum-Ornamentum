@@ -1,26 +1,30 @@
 package com.ldtteam.domumornamentum.client.model.baked;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ldtteam.domumornamentum.client.model.data.MaterialTextureData;
 import com.ldtteam.domumornamentum.client.model.utils.ModelSpriteQuadTransformer;
 import com.ldtteam.domumornamentum.client.model.utils.ModelSpriteQuadTransformerData;
 import com.ldtteam.domumornamentum.fabric.rendering.IQuadTransformer;
+import com.ldtteam.domumornamentum.mixin.MultiPartBakedModelAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.MultiPartBakedModel;
 import net.minecraft.client.resources.model.SimpleBakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class RetexturedBakedModelBuilder {
 
@@ -90,6 +94,48 @@ public class RetexturedBakedModelBuilder {
         return this;
     }
 
+    private static List<BakedQuad> getQuads(BakedModel target, BlockState state, Direction direction, RandomSource random, MaterialTextureData modelData) {
+        var quads = new LinkedList<BakedQuad>();
+
+        if (target instanceof MultiPartBakedModel) {
+            var accessor =  ((MultiPartBakedModelAccessor) target);
+            BitSet bitSet = accessor.getSelectorCache().get(state);
+            if (bitSet == null) {
+                bitSet = new BitSet();
+
+                for(int i = 0; i < accessor.getSelectors().size(); ++i) {
+                    Pair<Predicate<BlockState>, BakedModel> pair = accessor.getSelectors().get(i);
+                    if ((pair.getLeft()).test(state)) {
+                        bitSet.set(i);
+                    }
+                }
+
+                accessor.getSelectorCache().put(state, bitSet);
+            }
+
+            List<BakedModel> list = Lists.newArrayList();
+
+            for(int j = 0; j < bitSet.length(); ++j) {
+                if (bitSet.get(j)) {
+                    list.add((accessor.getSelectors().get(j)).getRight());
+                }
+            }
+
+            for (BakedModel bakedModel : list) {
+                if (bakedModel instanceof MateriallyTexturedBakedModel texturedBakedModel)
+                    quads.addAll(texturedBakedModel.getQuads(state, direction, random, modelData, null));
+                else
+                    quads.addAll(bakedModel.getQuads(state, direction, random));
+            }
+        } else if (target instanceof MateriallyTexturedBakedModel texturedBakedModel) {
+            quads.addAll(texturedBakedModel.getQuads(state, direction, random, modelData, null));
+        } else {
+            quads.addAll(target.getQuads(state, direction, random));
+        }
+
+        return quads;
+    }
+
     public BakedModel build() {
         final SimpleBakedModel.Builder builder = new SimpleBakedModel.Builder(
                 //((BakedModelExtension) sourceModel).useAmbientOcclusion(this.sourceState, this.renderType),
@@ -100,7 +146,7 @@ public class RetexturedBakedModelBuilder {
                 sourceModel.getOverrides()
         );
 
-        this.target.getQuads(null, null, RANDOM).forEach(quad -> {
+        getQuads(this.target, null, null, RANDOM, MaterialTextureData.EMPTY).forEach(quad -> {
             if (needsRetexturing(this.retexturingMaps, quad.getSprite())) {
                 retexture(quad, null).ifPresent(builder::addUnculledFace);
             } else if (!needsErasure(this.retexturingMaps, quad.getSprite())) {
@@ -109,7 +155,7 @@ public class RetexturedBakedModelBuilder {
         });
 
         for (final Direction value : Direction.values()) {
-            this.target.getQuads(null, value, RANDOM).forEach(quad -> {
+            getQuads(this.target, null, value, RANDOM, MaterialTextureData.EMPTY).forEach(quad -> {
                 if (needsRetexturing(this.retexturingMaps, quad.getSprite())) {
                     retexture(quad, value).ifPresent(newQuad -> builder.addCulledFace(value, newQuad));
                 } else if (!needsErasure(this.retexturingMaps, quad.getSprite())) {
@@ -170,10 +216,12 @@ public class RetexturedBakedModelBuilder {
         //If we did not find anything, that might be because the target model specifies culling while our source did not.
         //Lets try with the targeting direction (the normal) of the quad itself.
         if (targetQuads.isEmpty())
-            targetQuads = modelData.model().getQuads(
-                    null,
-                    source.getDirection(),
-                    RANDOM
+            targetQuads = getQuads(
+                modelData.model(),
+                null,
+                source.getDirection(),
+                RANDOM,
+                MaterialTextureData.EMPTY
             );
 
         if (targetQuads.isEmpty())
