@@ -5,12 +5,12 @@ import com.ldtteam.domumornamentum.block.decorative.ExtraBlock;
 import com.ldtteam.domumornamentum.block.types.*;
 import com.ldtteam.domumornamentum.client.screens.ArchitectsCutterScreen;
 import com.ldtteam.domumornamentum.container.ModContainerTypes;
+import com.ldtteam.domumornamentum.fabric.ItemPropertiesHelper;
 import com.ldtteam.domumornamentum.shingles.ShingleHeightType;
 import com.ldtteam.domumornamentum.util.Constants;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -26,7 +26,7 @@ public class ModBusEventHandler
 
     public static void onFMLClientSetup()
     {
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getTrapdoor().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getTrapdoor().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
           (itemStack, clientLevel, livingEntity, i) -> {
             if (!itemStack.getOrCreateTag().contains("type"))
                 return 0f;
@@ -40,15 +40,15 @@ public class ModBusEventHandler
 
               return trapdoorType.ordinal();
           }));
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getDoor().asItem(), new ResourceLocation(Constants.DOOR_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getDoor().asItem(), new ResourceLocation(Constants.DOOR_MODEL_OVERRIDE),
           (itemStack, clientLevel, livingEntity, i) -> handleDoorTypeOverride(itemStack)));
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getFancyDoor().asItem(), new ResourceLocation(Constants.DOOR_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getFancyDoor().asItem(), new ResourceLocation(Constants.DOOR_MODEL_OVERRIDE),
           (itemStack, clientLevel, livingEntity, i) -> handleFancyDoorTypeOverride(itemStack)));
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getFancyTrapdoor().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getFancyTrapdoor().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
           (itemStack, clientLevel, livingEntity, i) -> handleFancyTrapdoorTypeOverride(itemStack)));
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getPanel().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getPanel().asItem(), new ResourceLocation(Constants.TRAPDOOR_MODEL_OVERRIDE),
           (itemStack, clientLevel, livingEntity, i) -> handleStaticTrapdoorTypeOverride(itemStack)));
-        enqueueWork(() -> ItemProperties.register(IModBlocks.getInstance().getPost().asItem(), new ResourceLocation(Constants.POST_MODEL_OVERRIDE),
+        enqueueWork(() -> ItemPropertiesHelper.register(IModBlocks.getInstance().getPost().asItem(), new ResourceLocation(Constants.POST_MODEL_OVERRIDE),
                 (itemStack, clientLevel, livingEntity, i) -> handlePostTypeOverride(itemStack)));
 
         enqueueWork(() -> MenuScreens.register(
